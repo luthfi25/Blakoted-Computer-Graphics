@@ -302,12 +302,16 @@ static void drawbase(void)
 	dx = BASESIZE / BASERES;
 	dy = -BASESIZE / BASERES;
 	for (y = BASESIZE / 2.0, j = 0; j<BASERES; y += dy, j++) {
+		glCullFace(GL_FRONT);
 		glBegin(GL_QUAD_STRIP);
 		glColor3f(1.0, 1.0, 1.0);
 		glNormal3f(0.0, 0.0, 1.0);
 		for (x = -BASESIZE / 2.0, i = 0; i<BASERES; x += dx, i++) {
-			glVertex3f(x, y, 0.0);
-			glVertex3f(x, y + dy, 0.0);
+			glVertex3f(x - 5.0, -5.0, y);
+			glVertex3f(x - 5.0, -5.0, y + dy);
+			//glVertex3f(x, 5.0, y);
+			//glVertex3f(x, 5.0, y + dy);
+			printf("%f,%f,%f\n",x,y,dy);
 		}
 		glEnd();
 	}
@@ -328,7 +332,7 @@ static void drawteapot(void)
 	glMultMatrixf((GLfloat *)baseshadow);
 	glRotatef(-lightalpha, 0.0, 0.0, 1.0);
 
-	glTranslatef(0.0, 0.0, 1.0);
+	glTranslatef(0.0, 0.0, 1.375);
 	glRotatef(xrot, 1.0, 0.0, 0.0);
 	glRotatef(zrot, 0.0, 0.0, 1.0);
 
@@ -350,8 +354,8 @@ static void drawteapot(void)
 	traverse(&t_node);
 	glPopMatrix();
 
-	xrot += 2.0;
-	zrot += 1.0;
+	//xrot += 0.5;
+	//zrot += 0.25;
 }
 
 static void drawlight1(void)
@@ -370,7 +374,20 @@ static void drawlight2(void)
 	glTranslatef(lightpos[0], lightpos[1], lightpos[2]);
 	glCallList(lightdlist);
 	glPopMatrix();
-	lightalpha += 1.0;
+	lightalpha += 0.25;
+}
+
+static void drawtembok()
+{
+	glPushMatrix();
+	static const GLfloat amb[4] = { 1, .5, 0.2, 1 };
+	static const GLfloat diff[4] = { 1, .4, 0.2, 1 };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, amb);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff);
+	glRotatef(90.0, 0.0, 1.0, 0.0);
+	glRotatef(45.0, 0.0, 0.0, 1.0);
+	gluCylinder(te,7.5,7.5,7.5,4,100);
+	glPopMatrix();
 }
 
 
@@ -391,6 +408,7 @@ static void draw(void)
 		obs[0] + dir[0], obs[1] + dir[1], obs[2] + dir[2],
 		0.0, 0.0, 1.0);
 
+	//drawtembok();
 	drawlight1();
 	glCallList(basedlist);
 	drawteapot();
@@ -456,7 +474,9 @@ static void initdlists(void)
 	glNewList(teapotdlist, GL_COMPILE);
 	glRotatef(90.0, 1.0, 0.0, 0.0);
 	glCullFace(GL_FRONT);
-	glutSolidTeapot(0.75);
+	//glutSolidTeapot(0.75);
+	traverse(&t_node);
+	//glutSolidCube(0.75 );
 	glCullFace(GL_BACK);
 	glEndList();
 
