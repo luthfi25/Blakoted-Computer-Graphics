@@ -1,43 +1,51 @@
-//Worksheet 2 - Muhammad Luthfi - 1306386825
-//Bersama Mgs. M. Rizqi Fadhlurrahman
-//Manual penggunaan dapat dilihat pada readme-WS2-Luthfi.txt
-//Source Code dibuat dengan inspirasi dari figuretr.c
+/*
+* Teapot with shadow
+*/
 
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include <glut.h>
 
-#define TORSO_LENGTH 5.0
-#define TORSO_RADIUS 1.5
-#define UPPER_ARM_LENGTH 3.0
-#define LOWER_ARM_LENGTH 2.0
-#define ARM_RADIUS 0.5
+static int WIDTH = 640;
+static int HEIGHT = 480;
+
+static GLint T0 = 0;
+
+#define TORSO_LENGTH 1.25
+#define TORSO_RADIUS 0.375
+#define UPPER_ARM_LENGTH 0.75
+#define LOWER_ARM_LENGTH 0.5
+#define ARM_RADIUS 0.125
 #define NULL 0
 
-void applyNewAngle(void);
-void animation(void);
+#define BASESIZE 10.0
 
-double size = 1.0;
-GLUquadricObj *t, *ua1, *la1, *ua2, *la2, *ua3, *la3, *ua4, *la4, *dka, *db, *dki;
+#define BASERES 12
+#define TEAPOTRES 3
 
-//array penyimpan angle
+#ifndef M_PI
+#define M_PI 3.1415926535
+#endif
+
+static float obs[3] = { 5.0,0.0,1.0 };
+static float dir[3];
+static float v = 0.0;
+static float alpha = -90.0;
+static float beta = 90.0;
+
+static GLfloat baseshadow[4][4];
+static GLfloat lightpos[4] = { 2.3,0.0,0.75,1.0 };
+static GLfloat lightdir[3] = { -2.3,0.0,0.0 };
+static GLfloat lightalpha = 0.0;
+
+static int bfcull = 1;
+
+static GLuint teapotdlist, basedlist, lightdlist;
+GLUquadricObj *t, *ua1, *la1, *ua2, *la2, *ua3, *la3, *ua4, *la4, *te;
 static GLfloat theta[9] = { 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0 };
-static GLfloat thetax[9] = { 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0 };
-static GLint angle = 0;
 
-//nilai angle sementara untuk animasi
-GLfloat newTheta = 0.0;
-
-//variabel boolean untuk keperluan animasi dan pergeseran lampu
-bool lampuGeser = false;
-bool animasi = false;
-
-bool naik = true;
-bool baru = true;
-
-//variabel penyimpan posisi lampu
-GLfloat lampuX = 10.0;
-GLfloat lampuY = 10.0;
-GLfloat lampuZ = 10.0;
+/********************begin object code**********************/
 
 typedef struct treenode
 {
@@ -134,97 +142,354 @@ void traverse(treenode *root)
 	if (root->sibling != 0) traverse(root->sibling);
 }
 
-void bidangKiri(void)
+/*********************end object code***********************/
+
+
+
+/******************** begin shadow code ********************/
+
+/* Taken from the projshadow.c - by Tom McReynolds, SGI */
+/* modified by Dadan Hardianto, Fasilkom UI */
+
+
+enum {
+	X, Y, Z, W
+};
+enum {
+	A, B, C, D
+};
+
+/* create a matrix that will project the desired shadow */
+void shadowmatrix(GLfloat shadowMat[4][4],
+	GLfloat groundplane[4], GLfloat lightpos[4])
 {
-	return;
+	GLfloat dot;
+
+	/* find dot product between light position vector and ground plane normal */
+	dot = groundplane[X] * lightpos[X] +
+		groundplane[Y] * lightpos[Y] +
+		groundplane[Z] * lightpos[Z] +
+		groundplane[W] * lightpos[W];
+
+	shadowMat[0][0] = dot - lightpos[X] * groundplane[X];
+	shadowMat[1][0] = 0.f - lightpos[X] * groundplane[Y];
+	shadowMat[2][0] = 0.f - lightpos[X] * groundplane[Z];
+	shadowMat[3][0] = 0.f - lightpos[X] * groundplane[W];
+
+	shadowMat[X][1] = 0.f - lightpos[Y] * groundplane[X];
+	shadowMat[1][1] = dot - lightpos[Y] * groundplane[Y];
+	shadowMat[2][1] = 0.f - lightpos[Y] * groundplane[Z];
+	shadowMat[3][1] = 0.f - lightpos[Y] * groundplane[W];
+
+	shadowMat[X][2] = 0.f - lightpos[Z] * groundplane[X];
+	shadowMat[1][2] = 0.f - lightpos[Z] * groundplane[Y];
+	shadowMat[2][2] = dot - lightpos[Z] * groundplane[Z];
+	shadowMat[3][2] = 0.f - lightpos[Z] * groundplane[W];
+
+	shadowMat[X][3] = 0.f - lightpos[W] * groundplane[X];
+	shadowMat[1][3] = 0.f - lightpos[W] * groundplane[Y];
+	shadowMat[2][3] = 0.f - lightpos[W] * groundplane[Z];
+	shadowMat[3][3] = dot - lightpos[W] * groundplane[W];
+
 }
 
-void bidangBelakang(void)
+/* find the plane equation given 3 points */
+void findplane(GLfloat plane[4],
+	GLfloat v0[3], GLfloat v1[3], GLfloat v2[3])
 {
-	return;
+	GLfloat vec0[3], vec1[3];
+
+	/* need 2 vectors to find cross product */
+	vec0[X] = v1[X] - v0[X];
+	vec0[Y] = v1[Y] - v0[Y];
+	vec0[Z] = v1[Z] - v0[Z];
+
+	vec1[X] = v2[X] - v0[X];
+	vec1[Y] = v2[Y] - v0[Y];
+	vec1[Z] = v2[Z] - v0[Z];
+
+	/* find cross product to get A, B, and C of plane equation */
+	plane[A] = vec0[Y] * vec1[Z] - vec0[Z] * vec1[Y];
+	plane[B] = -(vec0[X] * vec1[Z] - vec0[Z] * vec1[X]);
+	plane[C] = vec0[X] * vec1[Y] - vec0[Y] * vec1[X];
+
+	plane[D] = -(plane[A] * v0[X] + plane[B] * v0[Y] + plane[C] * v0[Z]);
 }
 
-void bidangKanan(void)
+/******************** end shadow code ********************/
+
+
+static void calcposobs(void) //calculate viewer position
 {
-	return;
+	dir[0] = sin(alpha*M_PI / 180.0);
+	dir[1] = cos(alpha*M_PI / 180.0)*sin(beta*M_PI / 180.0);
+	dir[2] = cos(beta*M_PI / 180.0);
+
+	obs[0] += v*dir[0];
+	obs[1] += v*dir[1];
+	obs[2] += v*dir[2];
 }
 
-void display(void)
+static void special(int k, int x, int y) //change viewer angle position
 {
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glLoadIdentity();
-	glColor3f(1.0, 0.0, 0.0);
-
-	traverse(&t_node);
-
-	bidangKiri();
-	bidangBelakang();
-	bidangKanan();
-
-	//Draw posisi lampu
-	glLoadIdentity();
-	glPushMatrix();
-	glTranslatef(lampuX, lampuY, lampuZ);
-	glutSolidCube(1.0);
-	glPopMatrix();
-
-	glutSwapBuffers();
+	switch (k) {
+	case GLUT_KEY_LEFT:
+		alpha -= 2.0;
+		break;
+	case GLUT_KEY_RIGHT:
+		alpha += 2.0;
+		break;
+	case GLUT_KEY_DOWN:
+		beta -= 2.0;
+		break;
+	case GLUT_KEY_UP:
+		beta += 2.0;
+		break;
+	}
 }
 
-void myReshape(int w, int h)
+static void key(unsigned char k, int x, int y)
 {
-	glViewport(0, 0, w, h);
+	switch (k) {
+	case 27:
+		exit(0); //exit program
+		break;
+
+		/* a or z to change viewer depth position */
+	case 'a':
+		v += 0.005;
+		break;
+	case 'z':
+		v -= 0.005;
+		break;
+
+	case 'b': //enable/disable culling
+		if (bfcull) {
+			glDisable(GL_CULL_FACE);
+			bfcull = 0;
+		}
+		else {
+			glEnable(GL_CULL_FACE);
+			bfcull = 1;
+		}
+		break;
+	}
+}
+
+static void reshape(int w, int h)
+{
+	WIDTH = w;
+	HEIGHT = h;
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	if (w <= h)
-		glOrtho(-10.0, 10.0, -10.0 * (GLfloat)h / (GLfloat)w,
-			10.0 * (GLfloat)h / (GLfloat)w, -10.0, 10.0);
-	else
-		glOrtho(-10.0 * (GLfloat)w / (GLfloat)h,
-			10.0 * (GLfloat)w / (GLfloat)h, 0.0, 10.0, -10.0, 10.0);
+	gluPerspective(45.0, w / (float)h, 0.2, 40.0);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+	glViewport(0, 0, w, h);
 }
 
-//Method untuk menginisialisasi cahaya
-void setLampu()
+
+static void drawbase(void)
 {
-	GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-	GLfloat mat_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
-	GLfloat mat_ambient[] = { 1.0, 1.0, 1.0, 1.0 };
-	GLfloat mat_shininess = { 100.0 };
-	GLfloat light_ambient[] = { 0.0, 0.0, 0.0, 1.0 };
-	GLfloat light_diffuse[] = { 1.0, 0.0, 0.0, 1.0 };
-	GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-	GLfloat light_position[] = { lampuX, lampuY, lampuZ, 1.0 };
+	static const GLfloat amb[4] = { 1, .5, 0.2, 1 };
+	static const GLfloat diff[4] = { 1, .4, 0.2, 1 };
+	int i, j;
+	float x, y, dx, dy;
 
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
 
-	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
-	glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
-	glMaterialf(GL_FRONT, GL_SHININESS, mat_shininess);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, amb);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff);
+	dx = BASESIZE / BASERES;
+	dy = -BASESIZE / BASERES;
+	for (y = BASESIZE / 2.0, j = 0; j<BASERES; y += dy, j++) {
+		glBegin(GL_QUAD_STRIP);
+		glColor3f(1.0, 1.0, 1.0);
+		glNormal3f(0.0, 0.0, 1.0);
+		for (x = -BASESIZE / 2.0, i = 0; i<BASERES; x += dx, i++) {
+			glVertex3f(x, y, 0.0);
+			glVertex3f(x, y + dy, 0.0);
+		}
+		glEnd();
+	}
+}
+
+static void drawteapot(void)
+{
+	static const GLfloat amb[4] = { 0.2, 0.2, 0.2, 1 };
+	static const GLfloat diff[4] = { 0.8, 0.3, 0.5, 1 };
+	static float xrot = 0.0;
+	static float zrot = 0.0;
+
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, amb);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff);
+
+	glPushMatrix();
+	glRotatef(lightalpha, 0.0, 0.0, 1.0);
+	glMultMatrixf((GLfloat *)baseshadow);
+	glRotatef(-lightalpha, 0.0, 0.0, 1.0);
+
+	glTranslatef(0.0, 0.0, 1.0);
+	glRotatef(xrot, 1.0, 0.0, 0.0);
+	glRotatef(zrot, 0.0, 0.0, 1.0);
+
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_LIGHTING);
+
+	glColor3f(0.0, 0.0, 0.0);
+	glCallList(teapotdlist); //draw shadow
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LIGHTING);
+
+	glPopMatrix();
+
+	glPushMatrix();
+	glRotatef(90.0,1.0,0.0,0.0);
+	glTranslatef(-0.5, 1.5, 0.0);
+	glRotatef(90.0, 0.0, 1.0, 0.0);
+	traverse(&t_node);
+	glPopMatrix();
+
+	xrot += 2.0;
+	zrot += 1.0;
+}
+
+static void drawlight1(void)
+{
+	glPushMatrix();
+	glRotatef(lightalpha, 0.0, 0.0, 1.0);
+	glLightfv(GL_LIGHT0, GL_POSITION, lightpos);
+	glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, lightdir);
+	glPopMatrix();
+}
+
+static void drawlight2(void)
+{
+	glPushMatrix();
+	glRotatef(lightalpha, 0.0, 0.0, 1.0);
+	glTranslatef(lightpos[0], lightpos[1], lightpos[2]);
+	glCallList(lightdlist);
+	glPopMatrix();
+	lightalpha += 1.0;
+}
+
+
+static void draw(void)
+{
+	glEnable(GL_DEPTH_TEST);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glEnable(GL_LIGHTING);
 
 	glShadeModel(GL_SMOOTH);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	glDepthFunc(GL_LEQUAL);
-	glEnable(GL_DEPTH_TEST);
 
-	glClearColor(0.0, 0.0, 0.0, 1.0);
-	glColor3f(1.0, 0.0, 0.0);
+	glPushMatrix();
+
+	calcposobs();
+
+	gluLookAt(obs[0], obs[1], obs[2],
+		obs[0] + dir[0], obs[1] + dir[1], obs[2] + dir[2],
+		0.0, 0.0, 1.0);
+
+	drawlight1();
+	glCallList(basedlist);
+	drawteapot();
+	drawlight2();
+
+	glPopMatrix();
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
+	glShadeModel(GL_FLAT);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(-0.5, 639.5, -0.5, 479.5, -1.0, 1.0);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	reshape(WIDTH, HEIGHT);
+	glFlush();
+	glutSwapBuffers();
+
+
 }
 
-void myinit()
+
+static void initlight(void)
 {
-	setLampu();
+	float matamb[4] = { 0.5, 0.5, 0.5, 1.0 };
+	float matdiff[4] = { 0.9, 0.2, 0.2, 1.0 };
+	float matspec[4] = { 1.0,1.0,1.0,1.0 };
 
-	/* allocate quadrics with filled drawing style */
+	float lamb[4] = { 1.5, 1.5, 1.5, 1.0 };
+	float ldiff[4] = { 1.0, 1.0, 1.0, 1.0 };
+	float lspec[4] = { 1.0, 1.0, 1.0, 1.0 };
 
+	glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 70.0);
+	glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 20.0);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, lamb);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, ldiff);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, lspec);
+
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 15.0);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, matdiff);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, matspec);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, matamb);
+
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lamb);
+	glEnable(GL_LIGHT0);
+}
+
+static void initdlists(void)
+{
+	GLUquadricObj *lcone, *lbase;
+	GLfloat plane[4];
+	GLfloat v0[3] = { 0.0,0.0,0.0 };
+	GLfloat v1[3] = { 1.0,0.0,0.0 };
+	GLfloat v2[3] = { 0.0,1.0,0.0 };
+
+	findplane(plane, v0, v1, v2);
+	shadowmatrix(baseshadow, plane, lightpos);
+
+	teapotdlist = glGenLists(1);
+	glNewList(teapotdlist, GL_COMPILE);
+	glRotatef(90.0, 1.0, 0.0, 0.0);
+	glCullFace(GL_FRONT);
+	glutSolidTeapot(0.75);
+	glCullFace(GL_BACK);
+	glEndList();
+
+	basedlist = glGenLists(1);
+	glNewList(basedlist, GL_COMPILE);
+	drawbase();
+	glEndList();
+
+	lightdlist = glGenLists(1);
+	glNewList(lightdlist, GL_COMPILE);
+	glDisable(GL_LIGHTING);
+
+	lcone = gluNewQuadric();
+	lbase = gluNewQuadric();
+	glRotatef(90.0, 0.0, 1.0, 0.0);
+
+	glColor3f(1.0, 1.0, 1.0);
+	glCullFace(GL_FRONT);
+	gluDisk(lbase, 0.0, 0.2, 12.0, 1.0);
+	glCullFace(GL_BACK);
+
+	glColor3f(0.5, 0.0, 0.0);
+	gluCylinder(lcone, 0.2, 0.0, 0.5, 12, 1);
+
+	gluDeleteQuadric(lcone);
+	gluDeleteQuadric(lbase);
+
+	glEnable(GL_LIGHTING);
+	glEndList();
+}
+
+void initobj()
+{
 	t = gluNewQuadric();
 	gluQuadricDrawStyle(t, GLU_FILL);
 	ua1 = gluNewQuadric();
@@ -243,9 +508,10 @@ void myinit()
 	gluQuadricDrawStyle(ua4, GLU_FILL);
 	la4 = gluNewQuadric();
 	gluQuadricDrawStyle(la4, GLU_FILL);
+	te = gluNewQuadric();
+	gluQuadricDrawStyle(t, GLU_FILL);
 
 	/* Set up tree */
-
 	glLoadIdentity();
 	glRotatef(theta[0], 0.0, 1.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, t_node.m);
@@ -318,312 +584,38 @@ void myinit()
 	la4_node.child = NULL;
 
 	glLoadIdentity();
-	glTranslatef(0.75 * UPPER_ARM_LENGTH, 0.0, 0.75 * UPPER_ARM_LENGTH);
-	glRotatef(theta[8], 0.0, 1.0, 0.0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, la4_node.m);
-	la4_node.f = lower_arm_4;
-	la4_node.sibling = NULL;
-	la4_node.child = NULL;
-
-	glLoadIdentity();
-
 }
 
-//method special func untuk melakukan rotasi pada hirarki atau pergeseran posisi lampu
-void geser(int key, int xmouse, int ymouse)
+int main(int argc, char **argv)
 {
-	if (animasi)
-		return;
 
-	if (lampuGeser)
-	{
-		//pergesaran lampu mencakup atas,bawah,kiri, dan kanan
-		switch (key)
-		{
-		case GLUT_KEY_RIGHT:
-			lampuX += 1;
-			if (lampuX > 10.0) lampuX = 10.0;
-			break;
-		case GLUT_KEY_LEFT:
-			lampuX -= 1;
-			if (lampuX < -10.0) lampuX = -10.0;
-			break;
-		case GLUT_KEY_UP:
-			lampuY += 1;
-			if (lampuY > 10.0) lampuY = 10.0;
-			break;
-		case GLUT_KEY_DOWN:
-			lampuY -= 1;
-			if (lampuY < -10.0) lampuY = -10.0;
-			break;
-		}
-		setLampu();
-	}
-	else
-	{
-		//rotasi bagian hirarki
-		switch (key)
-		{
-		case GLUT_KEY_RIGHT:
-			theta[angle] += 5.0;
-			if (theta[angle] > 360.0) theta[angle] -= 360.0;
-			break;
-		case GLUT_KEY_LEFT:
-			theta[angle] -= 5.0;
-			if (theta[angle] < 0.0) theta[angle] += 360.0;
-			break;
-		}
-	}
-
-	applyNewAngle();
-	glutPostRedisplay();
-}
-
-void menu(int id)
-{
-	if (id < 9 && id >= 0)
-	{
-		angle = id;
-		lampuGeser = false;
-	}
-	else if (id == 9) lampuGeser = !lampuGeser;
-	else if (id == 10)
-	{
-		//toggle animasi
-		animasi = !animasi;
-
-		if (animasi)
-		{
-			glutIdleFunc(animation);
-		}
-		else
-		{
-			myinit();
-			glutIdleFunc(NULL);
-		}
-
-	}
-	else if (id == 11) exit(0);
-}
-
-//method untuk menerapkan angle baru pada poros y
-void applyNewAngle(void)
-{
-	glPushMatrix();
-	switch (angle)
-	{
-
-	case 0:
-		glLoadIdentity();
-		glRotatef(theta[0], 0.0, 1.0, 0.0);
-		glGetFloatv(GL_MODELVIEW_MATRIX, t_node.m);
-		break;
-
-	case 1:
-		glLoadIdentity();
-		glTranslatef(-0.5 * TORSO_RADIUS, 0.5 * TORSO_LENGTH, 0.0);
-		glRotatef(theta[1], 0.0, 1.0, 0.0);
-		glGetFloatv(GL_MODELVIEW_MATRIX, ua1_node.m);
-		break;
-
-	case 2:
-		glLoadIdentity();
-		glTranslatef(-0.75 * UPPER_ARM_LENGTH, 0.0, 0.75 * UPPER_ARM_LENGTH);
-		glRotatef(theta[2], 0.0, 1.0, 0.0);
-		glGetFloatv(GL_MODELVIEW_MATRIX, la1_node.m);
-		break;
-
-	case 3:
-		glLoadIdentity();
-		glTranslatef(0.5 * TORSO_RADIUS, 0.5 * TORSO_LENGTH, 0.0);
-		glRotatef(theta[3], 0.0, 1.0, 0.0);
-		glGetFloatv(GL_MODELVIEW_MATRIX, ua2_node.m);
-		break;
-
-	case 4:
-		glLoadIdentity();
-		glTranslatef(0.75 * UPPER_ARM_LENGTH, 0.0, 0.75 * UPPER_ARM_LENGTH);
-		glRotatef(theta[4], 0.0, 1.0, 0.0);
-		glGetFloatv(GL_MODELVIEW_MATRIX, la2_node.m);
-		break;
-
-	case 5:
-		glLoadIdentity();
-		glTranslatef(-0.5 * TORSO_RADIUS, -0.5 * TORSO_LENGTH, 0.0);
-		glRotatef(theta[5], 0.0, 1.0, 0.0);
-		glGetFloatv(GL_MODELVIEW_MATRIX, ua3_node.m);
-		break;
-
-	case 6:
-		glLoadIdentity();
-		glTranslatef(-0.75 * UPPER_ARM_LENGTH, 0.0, 0.75 * UPPER_ARM_LENGTH);
-		glRotatef(theta[6], 0.0, 1.0, 0.0);
-		glGetFloatv(GL_MODELVIEW_MATRIX, la3_node.m);
-		break;
-
-	case 7:
-		glLoadIdentity();
-		glTranslatef(0.5 * TORSO_RADIUS, -0.5 * TORSO_LENGTH, 0.0);
-		glRotatef(theta[7], 0.0, 1.0, 0.0);
-		glGetFloatv(GL_MODELVIEW_MATRIX, ua4_node.m);
-		break;
-
-	case 8:
-		glLoadIdentity();
-		glTranslatef(0.75 * UPPER_ARM_LENGTH, 0.0, 0.75 * UPPER_ARM_LENGTH);
-		glRotatef(theta[8], 0.0, 1.0, 0.0);
-		glGetFloatv(GL_MODELVIEW_MATRIX, la4_node.m);
-		break;
-	}
-	glPopMatrix();
-}
-
-//method untuk menerapkan angle baru pada poros z (buat animasi)
-void applyNewAnglex(void)
-{
-	glPushMatrix();
-	switch (angle)
-	{
-	case 1:
-		glLoadIdentity();
-		glTranslatef(-0.5 * TORSO_RADIUS, 0.5 * TORSO_LENGTH, 0.0);
-		glRotatef(thetax[1], 0.0, 0.0, 1.0);
-		glRotatef(-thetax[1], 0.0, 1.0, 0.0);
-		glGetFloatv(GL_MODELVIEW_MATRIX, ua1_node.m);
-		break;
-
-	case 3:
-		glLoadIdentity();
-		glTranslatef(0.5 * TORSO_RADIUS, 0.5 * TORSO_LENGTH, 0.0);
-		glRotatef(thetax[3], 0.0, 0.0, 1.0);
-		glRotatef(thetax[3], 0.0, 1.0, 0.0);
-		glGetFloatv(GL_MODELVIEW_MATRIX, ua2_node.m);
-		break;
-
-	case 5:
-		glLoadIdentity();
-		glTranslatef(-0.5 * TORSO_RADIUS, -0.5 * TORSO_LENGTH, 0.0);
-		glRotatef(thetax[5], 0.0, 0.0, 1.0);
-		glRotatef(-thetax[5], 0.0, 1.0, 0.0);
-		glGetFloatv(GL_MODELVIEW_MATRIX, ua3_node.m);
-		break;
-
-	case 7:
-		glLoadIdentity();
-		glTranslatef(0.5 * TORSO_RADIUS, -0.5 * TORSO_LENGTH, 0.0);
-		glRotatef(thetax[7], 0.0, 0.0, 1.0);
-		glRotatef(thetax[7], 0.0, 1.0, 0.0);
-		glGetFloatv(GL_MODELVIEW_MATRIX, ua4_node.m);
-		break;
-	}
-	glPopMatrix();
-}
-
-
-//method animasi, menggerakan kaki depan dan kaki belakang laba-laba
-void animation(void)
-{
-	int tempAngle = angle;
-
-	if (naik)
-	{
-		thetax[1] -= newTheta;
-		thetax[7] -= newTheta;
-		thetax[3] += newTheta;
-		thetax[5] += newTheta;
-
-		newTheta += 0.1;
-		thetax[1] += newTheta;
-		thetax[7] += newTheta;
-		thetax[3] -= newTheta;
-		thetax[5] -= newTheta;
-
-		angle = 1;
-		applyNewAnglex();
-		angle = 3;
-		applyNewAnglex();
-		angle = 5;
-		applyNewAnglex();
-		angle = 7;
-		applyNewAnglex();
-
-		if (baru)
-		{
-			if (newTheta > 45.0)
-			{
-				newTheta = 0.0;
-				naik = false;
-				baru = false;
-			}
-		}
-
-		if (newTheta > 90.0)
-		{
-			newTheta = 0.0;
-			naik = false;
-		}
-	}
-	else
-	{
-		thetax[1] += newTheta;
-		thetax[7] += newTheta;
-		thetax[3] -= newTheta;
-		thetax[5] -= newTheta;
-
-		newTheta += 0.1;
-		thetax[1] -= newTheta;
-		thetax[7] -= newTheta;
-		thetax[3] += newTheta;
-		thetax[5] += newTheta;
-
-		angle = 1;
-		applyNewAnglex();
-		angle = 3;
-		applyNewAnglex();
-		angle = 5;
-		applyNewAnglex();
-		angle = 7;
-		applyNewAnglex();
-
-		if (newTheta > 90.0)
-		{
-			newTheta = 0.0;
-			naik = true;
-		}
-	}
-
-	angle = tempAngle;
-	glutPostRedisplay();
-}
-
-void main(int argc, char **argv)
-{
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-	glutInitWindowSize(500, 500);
-	glutCreateWindow("WS 2 - Muhammad Luthfi - 1306386825");
-	myinit();
-	glutReshapeFunc(myReshape);
-	glutDisplayFunc(display);
-	glutSpecialFunc(geser);
-	glutIdleFunc(NULL);
+	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
+	glutInitWindowPosition(0, 0);
+	glutInitWindowSize(WIDTH, HEIGHT);
+	glutCreateWindow("Shadowed Teapot");
 
-	glutCreateMenu(menu);
-	glutAddMenuEntry("torso", 0);
-	glutAddMenuEntry("left_upper_arm_1", 1);
-	glutAddMenuEntry("left_lower_arm_1", 2);
-	glutAddMenuEntry("right_upper_arm_1", 3);
-	glutAddMenuEntry("right_lower_arm_1", 4);
-	glutAddMenuEntry("left_upper_arm_2", 5);
-	glutAddMenuEntry("left_lower_arm_2", 6);
-	glutAddMenuEntry("right_upper_arm_2", 7);
-	glutAddMenuEntry("right_lower_arm_2", 8);
-	glutAddMenuEntry("", -1);
-	glutAddMenuEntry("toggle kontrol lampu", 9);
-	glutAddMenuEntry("toggle animasi", 10);
-	glutAddMenuEntry("", -1);
-	glutAddMenuEntry("quit", 11);
-	glutAttachMenu(GLUT_RIGHT_BUTTON);
+	glShadeModel(GL_SMOOTH);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+
+	calcposobs();
+
+	initlight();
+
+	initobj();
+
+	initdlists();
+
+	glClearColor(0.25, 0.25, 0.25, 1.0);
+
+	glutReshapeFunc(reshape);
+	glutDisplayFunc(draw);
+	glutKeyboardFunc(key);
+	glutSpecialFunc(special);
+	glutIdleFunc(draw);
 
 	glutMainLoop();
+
+	return 0;
 }
