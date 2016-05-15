@@ -830,7 +830,7 @@ void main(int argc, char **argv) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 	glutInitWindowSize(800, 600);
-	glutCreateWindow("WS2 - Wall-E");
+	glutCreateWindow("WS3 - Wall-E");
 	myinit();
 	calcposobs();
 	initlight();
