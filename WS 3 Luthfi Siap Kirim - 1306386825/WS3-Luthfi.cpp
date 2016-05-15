@@ -1,16 +1,37 @@
 /*
-* Teapot with shadow
+* WORKSHEET 3 GRAFIKA KOMPUTER
+Muhammad Luthfi - 1306386825
+Bersama Mgs. M. Rizqi Fadhlurrahman
 */
 
+#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <windows.h>
 #include <glut.h>
+
+GLuint texture; //variable to hold texture pointer
 
 static int WIDTH = 640;
 static int HEIGHT = 480;
 
 static GLint T0 = 0;
+
+//Gold Material Value
+static float matamb1[4] = { 0.24725, 0.1995, 0.0745, 1 };
+static float matdiff1[4] = { 0.75164, 0.60648, 0.22648, 1 };
+static float matspec1[4] = { 0.628281, 0.555802, 0.366065, 1 };
+
+//Ruby Material Value
+static float matamb2[4] = { 0.1745, 0.01175, 0.01175, 1 };
+static float matdiff2[4] = { 0.61424, 0.04136, 0.04136, 1 };
+static float matspec2[4] = { 0.727811, 0.626959, 0.626959, 1 };
+
+//Emerald Material Value
+static float matamb3[4] = { 0.0215, 0.1745, 0.0215, 1 };
+static float matdiff3[4] = { 0.07568, 0.61424, 0.07568, 1 };
+static float matspec3[4] = { 0.633, 0.727811, 0.633, 1 };
 
 #define TORSO_LENGTH 1.25
 #define TORSO_RADIUS 0.375
@@ -35,16 +56,104 @@ static float alpha = -90.0;
 static float beta = 90.0;
 
 static GLfloat baseshadow[4][4];
+static GLfloat baseshadow2[4][4];
 static GLfloat lightpos[4] = { 2.3,0.0,0.75,1.0 };
 static GLfloat lightdir[3] = { -2.3,0.0,0.0 };
+static GLfloat lightpos2[4] = { 1.0,1.7,2.0 };
+static GLfloat lightdir2[3] = { -2.3,0.0,-3.0 };
 static GLfloat lightalpha = 0.0;
-
-static int bfcull = 1;
+static GLfloat lightalpha2 = 0.0;
 
 static GLuint teapotdlist, basedlist, lightdlist;
 GLUquadricObj *t, *ua1, *la1, *ua2, *la2, *ua3, *la3, *ua4, *la4, *te;
 static GLfloat theta[9] = { 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0 };
 
+bool lightActive = true;
+bool textureActive = false;
+int mat = 2;
+
+/*****************begin texture code*****************/
+
+/* Load texture from RAW 256x256 image */
+GLuint LoadTextureRAW(const char * filename, int wrap)
+{
+	int width, height;
+	BYTE * data;
+	FILE * file;
+
+	// open texture data
+	file = fopen(filename, "rb");
+	if (file == NULL) { return 0; }
+
+	// allocate buffer
+	width = 256;
+	height = 256;
+	data = (unsigned char *)malloc(width * height * 3);
+
+	// read texture data
+	fread(data, width * height * 3, 1, file);
+	fclose(file);
+
+	// allocate a texture name
+	glGenTextures(1, &texture);
+
+	// select our current texture
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	// select modulate to mix texture with color for shading
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+	// when texture area is small, bilinear filter the closest MIP map
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+		GL_LINEAR_MIPMAP_NEAREST);
+	// when texture area is large, bilinear filter the first MIP map
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	// if wrap is true, the texture wraps over at the edges (repeat)
+	//       ... false, the texture ends at the edges (clamp)
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+		wrap ? GL_REPEAT : GL_CLAMP);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+		wrap ? GL_REPEAT : GL_CLAMP);
+
+	// build our texture MIP maps
+	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width,
+		height, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+	// free buffer
+	free(data);
+
+	return texture;
+
+}
+
+void FreeTexture(GLuint texture)
+{
+	glDeleteTextures(1, &texture);
+}
+
+void setTexture(const char * file)
+{
+	texture = LoadTextureRAW(file, TRUE);
+	if (!texture) printf("Texture File not found !");
+
+	glEnable(GL_TEXTURE_2D); //enable texture
+	glBindTexture(GL_TEXTURE_2D, texture); //binding texture
+
+										   //auto generation texture coordinates
+	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+	glEnable(GL_TEXTURE_GEN_S);
+	glEnable(GL_TEXTURE_GEN_T);
+
+	/* setup texture parameters, see and try texture tutorial */
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+}
+
+/********************end texture code************************/
 /********************begin object code**********************/
 
 typedef struct treenode
@@ -60,74 +169,119 @@ treenode t_node, ua1_node, la1_node, ua2_node, la2_node, ua3_node, la3_node, ua4
 //Deklarasi method-method untuk menggambar masing-masing bagian hirarki
 void torso()
 {
+	if(textureActive)
+		setTexture("burung.raw");
+
 	glPushMatrix();
 	glScalef(TORSO_RADIUS, TORSO_LENGTH, TORSO_RADIUS);
 	gluSphere(t, 1.0, 10, 10);
 	glPopMatrix();
+
+	glDisable(GL_TEXTURE_2D);
 }
 
 void upper_arm_1()
 {
+	if (textureActive)
+		setTexture("makara.raw");
+
 	glPushMatrix();
 	glRotatef(-45.0, 0.0, 1.0, 0.0);
 	gluCylinder(ua1, ARM_RADIUS, ARM_RADIUS, UPPER_ARM_LENGTH, 10, 10);
 	glPopMatrix();
+
+	glDisable(GL_TEXTURE_2D);
 }
 
 void lower_arm_1()
 {
+	if (textureActive)
+		setTexture("makara.raw");
+
 	glPushMatrix();
 	glRotatef(-135.0, 0.0, 1.0, 0.0);
 	gluCylinder(la1, ARM_RADIUS, ARM_RADIUS, LOWER_ARM_LENGTH, 10, 10);
 	glPopMatrix();
+
+	glDisable(GL_TEXTURE_2D);
 }
 
 void upper_arm_2()
 {
+	if (textureActive)
+		setTexture("makara.raw");
+
 	glPushMatrix();
 	glRotatef(45.0, 0.0, 1.0, 0.0);
 	gluCylinder(ua2, ARM_RADIUS, ARM_RADIUS, UPPER_ARM_LENGTH, 10, 10);
 	glPopMatrix();
+
+	glDisable(GL_TEXTURE_2D);
 }
 
 void lower_arm_2()
 {
+	if (textureActive)
+		setTexture("makara.raw");
+
 	glPushMatrix();
 	glRotatef(135.0, 0.0, 1.0, 0.0);
 	gluCylinder(la2, ARM_RADIUS, ARM_RADIUS, LOWER_ARM_LENGTH, 10, 10);
 	glPopMatrix();
+
+	glDisable(GL_TEXTURE_2D);
 }
 
 void upper_arm_3()
 {
+	if (textureActive)
+		setTexture("texture.raw");
+
 	glPushMatrix();
 	glRotatef(-45.0, 0.0, 1.0, 0.0);
 	gluCylinder(ua3, ARM_RADIUS, ARM_RADIUS, UPPER_ARM_LENGTH, 10, 10);
 	glPopMatrix();
+
+	glDisable(GL_TEXTURE_2D);
 }
 
 void lower_arm_3()
 {
+	if (textureActive)
+		setTexture("texture.raw");
+
 	glPushMatrix();
 	glRotatef(-135.0, 0.0, 1.0, 0.0);
 	gluCylinder(la3, ARM_RADIUS, ARM_RADIUS, LOWER_ARM_LENGTH, 10, 10);
 	glPopMatrix();
+
+	glDisable(GL_TEXTURE_2D);
 }
 
 void upper_arm_4()
 {
+	if (textureActive)
+		setTexture("texture.raw");
+
 	glPushMatrix();
 	glRotatef(45.0, 0.0, 1.0, 0.0);
 	gluCylinder(ua4, ARM_RADIUS, ARM_RADIUS, UPPER_ARM_LENGTH, 10, 10);
 	glPopMatrix();
+
+	glDisable(GL_TEXTURE_2D);
 }
 
 void lower_arm_4()
 {
+	if (textureActive)
+		setTexture("texture.raw");
+
 	glPushMatrix();
 	glRotatef(135.0, 0.0, 1.0, 0.0);
 	gluCylinder(la4, ARM_RADIUS, ARM_RADIUS, LOWER_ARM_LENGTH, 10, 10);
 	glPopMatrix();
+
+	glDisable(GL_TEXTURE_2D);
 }
 
 //Method traverse tree
@@ -143,8 +297,6 @@ void traverse(treenode *root)
 }
 
 /*********************end object code***********************/
-
-
 
 /******************** begin shadow code ********************/
 
@@ -230,52 +382,6 @@ static void calcposobs(void) //calculate viewer position
 	obs[2] += v*dir[2];
 }
 
-static void special(int k, int x, int y) //change viewer angle position
-{
-	switch (k) {
-	case GLUT_KEY_LEFT:
-		alpha -= 2.0;
-		break;
-	case GLUT_KEY_RIGHT:
-		alpha += 2.0;
-		break;
-	case GLUT_KEY_DOWN:
-		beta -= 2.0;
-		break;
-	case GLUT_KEY_UP:
-		beta += 2.0;
-		break;
-	}
-}
-
-static void key(unsigned char k, int x, int y)
-{
-	switch (k) {
-	case 27:
-		exit(0); //exit program
-		break;
-
-		/* a or z to change viewer depth position */
-	case 'a':
-		v += 0.005;
-		break;
-	case 'z':
-		v -= 0.005;
-		break;
-
-	case 'b': //enable/disable culling
-		if (bfcull) {
-			glDisable(GL_CULL_FACE);
-			bfcull = 0;
-		}
-		else {
-			glEnable(GL_CULL_FACE);
-			bfcull = 1;
-		}
-		break;
-	}
-}
-
 static void reshape(int w, int h)
 {
 	WIDTH = w;
@@ -291,79 +397,134 @@ static void reshape(int w, int h)
 
 static void drawbase(void)
 {
-	static const GLfloat amb[4] = { 1, .5, 0.2, 1 };
-	static const GLfloat diff[4] = { 1, .4, 0.2, 1 };
-	int i, j;
-	float x, y, dx, dy;
-
+	GLfloat amb[4] = { 1, .5, 0.2, 1 };
+	GLfloat diff[4] = { 1, .4, 0.2, 1 };
 
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, amb);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff);
-	dx = BASESIZE / BASERES;
-	dy = -BASESIZE / BASERES;
-	for (y = BASESIZE / 2.0, j = 0; j<BASERES; y += dy, j++) {
-		glCullFace(GL_FRONT);
-		glBegin(GL_QUAD_STRIP);
-		glColor3f(1.0, 1.0, 1.0);
-		glNormal3f(0.0, 0.0, 1.0);
-		for (x = -BASESIZE / 2.0, i = 0; i<BASERES; x += dx, i++) {
-			glVertex3f(x - 5.0, -5.0, y);
-			glVertex3f(x - 5.0, -5.0, y + dy);
-			//glVertex3f(x, 5.0, y);
-			//glVertex3f(x, 5.0, y + dy);
-			printf("%f,%f,%f\n",x,y,dy);
-		}
-		glEnd();
-	}
+	glPushMatrix();
+	glTranslatef(0.0, 0.0, 1.5);
+	glRotatef(45.0, 1.0, 0.0, 0.0);
+	glRotatef(-90.0, 0.0, 1.0, 0.0);
+	glCullFace(GL_FRONT);
+	gluCylinder(te, 4.0, 4.0, 4.0, 4, 10);
+	glPopMatrix();
+
+	GLfloat amb1[4] = { 0.5, .25, 0.1, 0.5 };
+	GLfloat diff1[4] = { 0.5, .2, 0.1, 0.5 };
+
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, amb1);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff1);
+
+	glPushMatrix();
+	glTranslatef(-4.0, 0.0, 1.5);
+	glRotatef(45.0, 1.0, 0.0, 0.0);
+	glRotatef(-90.0, 0.0, 1.0, 0.0);
+	glCullFace(GL_FRONT);
+	gluDisk(te, 0.0, 4.0, 4, 10);
+	glPopMatrix();
+
+	GLfloat amb2[4] = { 0.19225, 0.19225, 0.19225, 1 };
+	GLfloat diff2[4] = { 0.50754, 0.50754, 0.50754, 1 };
+
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, amb2);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff2);
+
+	glPushMatrix();
+	glTranslatef(0.0, 2.0, 2.0);
+	glRotatef(45.0, 1.0, 0.0, 0.0);
+	glRotatef(-90.0, 0.0, 1.0, 0.0);
+	glCullFace(GL_FRONT);
+	gluDisk(te, 0.0, 0.125, 20, 20);
+	glPopMatrix();
 }
 
 static void drawteapot(void)
 {
-	static const GLfloat amb[4] = { 0.2, 0.2, 0.2, 1 };
-	static const GLfloat diff[4] = { 0.8, 0.3, 0.5, 1 };
-	static float xrot = 0.0;
-	static float zrot = 0.0;
+	if (mat == 1)
+	{
+		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 51.2);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, matdiff1);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, matspec1);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, matamb1);
 
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, amb);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff);
+	}
+	else if (mat == 2)
+	{
+		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 76.8);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, matamb2);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, matdiff2);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, matspec2);
+	}
+	else if (mat == 3)
+	{
+		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 76.8);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, matamb3);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, matdiff3);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, matspec3);
+	}
 
 	glPushMatrix();
 	glRotatef(lightalpha, 0.0, 0.0, 1.0);
 	glMultMatrixf((GLfloat *)baseshadow);
 	glRotatef(-lightalpha, 0.0, 0.0, 1.0);
 
-	glTranslatef(0.0, 0.0, 1.375);
-	glRotatef(xrot, 1.0, 0.0, 0.0);
-	glRotatef(zrot, 0.0, 0.0, 1.0);
+	glTranslatef(-4.0, 0.0, 1.5);
+	glRotatef(90.0, 0.0, 0.0, 1.0);
 
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_LIGHTING);
 
 	glColor3f(0.0, 0.0, 0.0);
-	glCallList(teapotdlist); //draw shadow
+
+	if (lightActive)
+		glCallList(teapotdlist); //draw main shadow
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
-
 	glPopMatrix();
 
 	glPushMatrix();
-	glRotatef(90.0,1.0,0.0,0.0);
-	glTranslatef(-0.5, 1.5, 0.0);
+	glRotatef(lightalpha2, 0.0, 0.0, 1.0);
+	glMultMatrixf((GLfloat *)baseshadow2);
+	glRotatef(-lightalpha2, 0.0, 0.0, 1.0);
+
+	glTranslatef(1.0, 0.0, 1.0);
+	glRotatef(-45.0, 0.0, 0.0, 1.0);
+
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_LIGHTING);
+
+	glColor3f(0.0, 0.0, 0.0);
+
+	if (lightActive)
+		glCallList(teapotdlist); //draw floor shadow
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LIGHTING);
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0.0, 0.0, 0.5);
+	glRotatef(90.0, 1.0, 0.0, 0.0);
 	glRotatef(90.0, 0.0, 1.0, 0.0);
 	traverse(&t_node);
 	glPopMatrix();
-
-	//xrot += 0.5;
-	//zrot += 0.25;
 }
 
 static void drawlight1(void)
 {
+	//light ws 3
 	glPushMatrix();
 	glRotatef(lightalpha, 0.0, 0.0, 1.0);
 	glLightfv(GL_LIGHT0, GL_POSITION, lightpos);
 	glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, lightdir);
+	glPopMatrix();
+
+	//light ws 2 (little sphere at 0.0,1.0,1.0)
+	glPushMatrix();
+	glLightfv(GL_LIGHT1, GL_POSITION, lightpos2);
+	glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, lightdir2);
 	glPopMatrix();
 }
 
@@ -374,25 +535,16 @@ static void drawlight2(void)
 	glTranslatef(lightpos[0], lightpos[1], lightpos[2]);
 	glCallList(lightdlist);
 	glPopMatrix();
-	lightalpha += 0.25;
-}
 
-static void drawtembok()
-{
-	glPushMatrix();
-	static const GLfloat amb[4] = { 1, .5, 0.2, 1 };
-	static const GLfloat diff[4] = { 1, .4, 0.2, 1 };
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, amb);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff);
-	glRotatef(90.0, 0.0, 1.0, 0.0);
-	glRotatef(45.0, 0.0, 0.0, 1.0);
-	gluCylinder(te,7.5,7.5,7.5,4,100);
-	glPopMatrix();
+	if(textureActive)
+		lightalpha += 0.5;
+	else
+		lightalpha += 0.1;
 }
-
 
 static void draw(void)
 {
+	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -408,11 +560,12 @@ static void draw(void)
 		obs[0] + dir[0], obs[1] + dir[1], obs[2] + dir[2],
 		0.0, 0.0, 1.0);
 
-	//drawtembok();
 	drawlight1();
 	glCallList(basedlist);
 	drawteapot();
-	drawlight2();
+
+	if (lightActive)
+		drawlight2();
 
 	glPopMatrix();
 
@@ -429,8 +582,6 @@ static void draw(void)
 	reshape(WIDTH, HEIGHT);
 	glFlush();
 	glutSwapBuffers();
-
-
 }
 
 
@@ -442,7 +593,7 @@ static void initlight(void)
 
 	float lamb[4] = { 1.5, 1.5, 1.5, 1.0 };
 	float ldiff[4] = { 1.0, 1.0, 1.0, 1.0 };
-	float lspec[4] = { 1.0, 1.0, 1.0, 1.0 };
+	float lspec[4] = { 0.0, 0.0, 0.0, 0.0 };
 
 	glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 70.0);
 	glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 20.0);
@@ -450,33 +601,42 @@ static void initlight(void)
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, ldiff);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, lspec);
 
-	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 15.0);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, matdiff);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, matspec);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, matamb);
+	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 70.0);
+	glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 20.0);
+	glLightfv(GL_LIGHT1, GL_AMBIENT, lamb);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, ldiff);
+	glLightfv(GL_LIGHT1, GL_SPECULAR, lspec);
 
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lamb);
+
 	glEnable(GL_LIGHT0);
+	glEnable(GL_LIGHT1);
 }
 
 static void initdlists(void)
 {
 	GLUquadricObj *lcone, *lbase;
 	GLfloat plane[4];
-	GLfloat v0[3] = { 0.0,0.0,0.0 };
-	GLfloat v1[3] = { 1.0,0.0,0.0 };
-	GLfloat v2[3] = { 0.0,1.0,0.0 };
+	GLfloat v0[3] = { -10, -10, -30 };
+	GLfloat v1[3] = { -10, -10, -50 };
+	GLfloat v2[3] = { -10, 300, -50 };
 
 	findplane(plane, v0, v1, v2);
 	shadowmatrix(baseshadow, plane, lightpos);
 
+	GLfloat v02[3] = { 0, 0, 0 };
+	GLfloat v12[3] = { 1, 0, 0 };
+	GLfloat v22[3] = { 0, 1, 0 };
+
+	findplane(plane, v02, v12, v22);
+	shadowmatrix(baseshadow2, plane, lightpos2);
+
 	teapotdlist = glGenLists(1);
 	glNewList(teapotdlist, GL_COMPILE);
 	glRotatef(90.0, 1.0, 0.0, 0.0);
+
 	glCullFace(GL_FRONT);
-	//glutSolidTeapot(0.75);
 	traverse(&t_node);
-	//glutSolidCube(0.75 );
 	glCullFace(GL_BACK);
 	glEndList();
 
@@ -606,6 +766,33 @@ void initobj()
 	glLoadIdentity();
 }
 
+void menu(int id)
+{
+	if (id == 1)
+	{
+		if (lightActive) {
+			glDisable(GL_LIGHT0);
+			glDisable(GL_LIGHT1);
+			lightActive = false;
+		}
+		else {
+			glEnable(GL_LIGHT0);
+			glEnable(GL_LIGHT1);
+			lightActive = true;
+		}
+	}
+	else if (id > 1 && id < 5)
+	{
+		mat = id;
+	}
+	else if (id == 5)
+	{
+		textureActive = !textureActive;
+	}
+	else if (id == 11)
+		exit(0);
+}
+
 int main(int argc, char **argv)
 {
 
@@ -613,7 +800,7 @@ int main(int argc, char **argv)
 	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
 	glutInitWindowPosition(0, 0);
 	glutInitWindowSize(WIDTH, HEIGHT);
-	glutCreateWindow("Shadowed Teapot");
+	glutCreateWindow("WS 3 Grafkom - Muhammad Luthfi - 1306386825");
 
 	glShadeModel(GL_SMOOTH);
 	glEnable(GL_DEPTH_TEST);
@@ -631,9 +818,16 @@ int main(int argc, char **argv)
 
 	glutReshapeFunc(reshape);
 	glutDisplayFunc(draw);
-	glutKeyboardFunc(key);
-	glutSpecialFunc(special);
 	glutIdleFunc(draw);
+
+	glutCreateMenu(menu);
+	glutAddMenuEntry("Hidup/Matikan Lampu", 1);
+	glutAddMenuEntry("Material Gold (Default)", 2);
+	glutAddMenuEntry("Material Ruby", 3);
+	glutAddMenuEntry("Material Emerald", 4);
+	glutAddMenuEntry("Aktif/Nonaktifkan Tekstur",5);
+	glutAddMenuEntry("quit", 11);
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
 
 	glutMainLoop();
 
