@@ -721,26 +721,35 @@ void display(void)
 
 	glPushMatrix();
 	glTranslatef(-15.0, 10.0, -15.0);
-	glutSolidSphere(1, 20, 20);
+	glutSolidCube(1);
 	glPopMatrix();
 
 	glPushMatrix();
 	glTranslatef(15.0, 10.0, -15.0);
-	glutSolidSphere(1, 20, 20);
+	glutSolidCube(1);
 	glPopMatrix();
 
 	glPushMatrix();
 	glTranslatef(lamp3.translation[0], lamp3.translation[1], lamp3.translation[2]);
-	glutSolidSphere(1, 20, 20);
+	glutSolidCube(1);
 	glPopMatrix();
 
 	glPushMatrix();
 	glTranslatef(lamp4.translation[0], lamp4.translation[1], lamp4.translation[2]);
-	glutSolidSphere(1, 20, 20);
+	glutSolidCube(1);
 	glPopMatrix();
 
-	//set posisi dan gambar lantai
 	glEnable(GL_TEXTURE_2D);
+
+	//rotate texture
+	glMatrixMode(GL_TEXTURE);
+    glLoadIdentity();
+    glTranslatef(0.5,0.5,0.0);
+    glRotatef(90.0,0.0,1.0,0.0);
+    glTranslatef(-0.5,-0.5,0.0);
+    glMatrixMode(GL_MODELVIEW);
+
+    //set posisi dan gambar lantai
 	glBindTexture(GL_TEXTURE_2D, texture[9]);
 	GLfloat v0[3], v1[3], v2[3], v3[3];
 	glBegin(GL_POLYGON);
@@ -1040,10 +1049,10 @@ void key(unsigned char key, int x, int y) {
 	if (control.compare("camera") == 0)
 	{
 		switch (key) {
-		case 'f':
+		case 'w':
 			camera.translation[2] += 0.25;
 			break;
-		case 'b':
+		case 's':
 			camera.translation[2] -= 0.25;
 			break;
 		}
@@ -1051,10 +1060,10 @@ void key(unsigned char key, int x, int y) {
 	else if (control.compare("lamp 3") == 0)
 	{
 		switch (key) {
-		case 'f':
+		case 'w':
 			lamp3.translation[2] -= 0.25;
 			break;
-		case 'b':
+		case 's':
 			lamp3.translation[2] += 0.25;
 			break;
 		}
@@ -1062,10 +1071,10 @@ void key(unsigned char key, int x, int y) {
 	else
 	{
 		switch (key) {
-		case 'f':
+		case 'w':
 			lamp4.translation[2] -= 0.25;
 			break;
-		case 'b':
+		case 's':
 			lamp4.translation[2] += 0.25;
 			break;
 		}
@@ -1521,7 +1530,7 @@ bool LoadTextureRAW(int wrap, GLuint * texture)
 
 	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
 
-	file = fopen("texture-asphalt.raw", "rb");
+	file = fopen("tiles.raw", "rb");
 	if (file == NULL) return 0;
 	fread(data, width * height * 3, 1, file);
 	glBindTexture(GL_TEXTURE_2D, texture[9]);
@@ -1738,13 +1747,13 @@ void main(int argc, char **argv)
 
 	// load and check our texture from file
 	bool loaded;
-	loaded = LoadTextureRAW(TRUE, texture);
+	loaded = LoadTextureRAW(FALSE, texture);
 	if (!loaded) printf("Texture File not found !");
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	glutMainLoop();
 }
