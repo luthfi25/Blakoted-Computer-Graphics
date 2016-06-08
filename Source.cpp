@@ -33,7 +33,6 @@ struct Object {
 	std::string direction;
 };
 Object camera;
-Object dog;
 Object train;
 Object officer;
 Object lamp3;
@@ -77,10 +76,8 @@ typedef struct treenode
 }treenode;
 
 //untuk animasi
-static GLfloat theta[10] = { 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0 };
+static GLfloat thetaSpider[10] = { 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0 };
 bool forwardSpider = true;
-static GLfloat thetaDog[12] = { 0.0, 0.0, 0.0, 180.0, 0.0, 180.0, 0.0, 180.0, 0.0, 180.0, 0.0, 90.0 };
-bool forwardDog[5];
 static GLfloat thetaTrain[2] = { 0.0, 0.0 };
 GLfloat smokeStack = 0;
 bool topStack = true;
@@ -90,8 +87,6 @@ bool forwardOfficer[2];
 
 //quadric spider
 GLUquadricObj *t, *ua1, *la1, *ua2, *la2, *ua3, *la3, *ua4, *la4, *te;
-//quadric anjing
-GLUquadricObj *b, *h, *lua, *lla, *rua, *rla, *lll, *rll, *rul, *lul, *t1;
 //quadric kereta
 GLUquadricObj *e, *c, *lfw, *lrw, *rfw, *rrw, *ss;
 //quadric officer
@@ -100,7 +95,6 @@ GLUquadricObj *t2, *h2, *lua2, *lla2, *rua2, *rla2, *lll2, *rll2, *rul2, *lul2;
 GLUquadricObj *ut1, *ut2, *ut3, *lt;
 
 treenode t_node, ua1_node, la1_node, ua2_node, la2_node, ua3_node, la3_node, ua4_node, la4_node;
-treenode body_node, head_node, lua_node, rua_node, lll_node, rll_node, lla_node, rla_node, rul_node, lul_node, tail_node;
 treenode engine_node, cab_node, lfw_node, lrw_node, rfw_node, rrw_node, ss_node;
 treenode torso_node, head2_node, lua2_node, rua2_node, lll2_node, rll2_node, lla2_node, rla2_node, rul2_node, lul2_node;
 
@@ -213,108 +207,6 @@ void traverse(treenode* root)
 	if (root->sibling != NULL) traverse(root->sibling);
 }
 
-//method objek anjing
-void body()
-{
-	glBindTexture(GL_TEXTURE_2D, texture[2]);
-	glPushMatrix();
-	glRotatef(-90.0, 0.0, 1.0, 0.0);
-	gluCylinder(b, 1.0, 1.0, 5.0, 10, 10);
-	glTranslatef(0.0, 0.0, 5.0);
-	glutSolidCone(1.0, 1.67, 10, 10);
-	glTranslatef(0.0, 0.0, -5.0);
-	gluSphere(h, 1.0, 20, 20);
-	glPopMatrix();
-}
-
-void head()
-{
-	glBindTexture(GL_TEXTURE_2D, texture[1]);
-	glPushMatrix();
-	gluSphere(h, 1.0, 20, 20);
-	glPopMatrix();
-}
-
-void left_upper_arm()
-{
-	glBindTexture(GL_TEXTURE_2D, texture[0]);
-	glPushMatrix();
-	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(lua, 0.25, 0.25, 3.0, 10, 10);
-	glPopMatrix();
-}
-
-void left_lower_arm()
-{
-	glBindTexture(GL_TEXTURE_2D, texture[0]);
-	glPushMatrix();
-	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(lla, 0.25, 0.25, 2.0, 10, 10);
-	glPopMatrix();
-}
-
-void right_upper_arm()
-{
-	glBindTexture(GL_TEXTURE_2D, texture[0]);
-	glPushMatrix();
-	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(rua, 0.25, 0.25, 3.0, 10, 10);
-	glPopMatrix();
-}
-
-void right_lower_arm()
-{
-	glBindTexture(GL_TEXTURE_2D, texture[0]);
-	glPushMatrix();
-	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(rla, 0.25, 0.25, 2.0, 10, 10);
-	glPopMatrix();
-}
-
-void left_upper_leg()
-{
-	glBindTexture(GL_TEXTURE_2D, texture[0]);
-	glPushMatrix();
-	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(lul, 0.25, 0.25, 3.0, 10, 10);
-	glPopMatrix();
-}
-
-void left_lower_leg()
-{
-	glBindTexture(GL_TEXTURE_2D, texture[0]);
-	glPushMatrix();
-	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(lll, 0.25, 0.25, 2.0, 10, 10);
-	glPopMatrix();
-}
-
-void right_upper_leg()
-{
-	glBindTexture(GL_TEXTURE_2D, texture[0]);
-	glPushMatrix();
-	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(rul, 0.25, 0.25, 3.0, 10, 10);
-	glPopMatrix();
-}
-
-void right_lower_leg()
-{
-	glBindTexture(GL_TEXTURE_2D, texture[0]);
-	glPushMatrix();
-	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(rll, 0.25, 0.25, 2.0, 10, 10);
-	glPopMatrix();
-}
-
-void tail()
-{
-	glBindTexture(GL_TEXTURE_2D, texture[0]);
-	glPushMatrix();
-	gluCylinder(t1, 0.2, 0.2, 5.0, 20, 20);
-	glPopMatrix();
-}
-
 //Method objek kereta
 void engine() //membuat objek engine dari locomotive
 {
@@ -391,7 +283,7 @@ void head2()
 	glPushMatrix();
 	glTranslatef(0.0, 0.5*HEAD_HEIGHT, 0.0);
 	glScalef(HEAD_RADIUS, HEAD_HEIGHT, HEAD_RADIUS);
-	gluSphere(h, 1.0, 10, 10);
+	gluSphere(h2, 1.0, 10, 10);
 	glPopMatrix();
 }
 
@@ -400,7 +292,7 @@ void left_upper_arm2()
 	glBindTexture(GL_TEXTURE_2D, texture[7]);
 	glPushMatrix();
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(lua, UPPER_LEG_RADIUS, UPPER_LEG_RADIUS, UPPER_LEG_HEIGHT, 10, 10);
+	gluCylinder(lua2, UPPER_LEG_RADIUS, UPPER_LEG_RADIUS, UPPER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
 }
 
@@ -409,7 +301,7 @@ void left_lower_arm2()
 	glBindTexture(GL_TEXTURE_2D, texture[7]);
 	glPushMatrix();
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(lla, LOWER_LEG_RADIUS, LOWER_LEG_RADIUS, LOWER_LEG_HEIGHT, 10, 10);
+	gluCylinder(lla2, LOWER_LEG_RADIUS, LOWER_LEG_RADIUS, LOWER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
 }
 
@@ -418,7 +310,7 @@ void right_upper_arm2()
 	glBindTexture(GL_TEXTURE_2D, texture[7]);
 	glPushMatrix();
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(rua, UPPER_LEG_RADIUS, UPPER_LEG_RADIUS, UPPER_LEG_HEIGHT, 10, 10);
+	gluCylinder(rua2, UPPER_LEG_RADIUS, UPPER_LEG_RADIUS, UPPER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
 }
 
@@ -427,7 +319,7 @@ void right_lower_arm2()
 	glBindTexture(GL_TEXTURE_2D, texture[7]);
 	glPushMatrix();
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(rla, LOWER_LEG_RADIUS, LOWER_LEG_RADIUS, LOWER_LEG_HEIGHT, 10, 10);
+	gluCylinder(rla2, LOWER_LEG_RADIUS, LOWER_LEG_RADIUS, LOWER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
 }
 
@@ -436,7 +328,7 @@ void left_upper_leg2()
 	glBindTexture(GL_TEXTURE_2D, texture[7]);
 	glPushMatrix();
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(lul, UPPER_LEG_RADIUS, UPPER_LEG_RADIUS, UPPER_LEG_HEIGHT, 10, 10);
+	gluCylinder(lul2, UPPER_LEG_RADIUS, UPPER_LEG_RADIUS, UPPER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
 }
 
@@ -445,7 +337,7 @@ void left_lower_leg2()
 	glBindTexture(GL_TEXTURE_2D, texture[7]);
 	glPushMatrix();
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(lll, LOWER_LEG_RADIUS, LOWER_LEG_RADIUS, LOWER_LEG_HEIGHT, 10, 10);
+	gluCylinder(lll2, LOWER_LEG_RADIUS, LOWER_LEG_RADIUS, LOWER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
 }
 
@@ -454,7 +346,7 @@ void right_upper_leg2()
 	glBindTexture(GL_TEXTURE_2D, texture[7]);
 	glPushMatrix();
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(rul, UPPER_LEG_RADIUS, UPPER_LEG_RADIUS, UPPER_LEG_HEIGHT, 10, 10);
+	gluCylinder(rul2, UPPER_LEG_RADIUS, UPPER_LEG_RADIUS, UPPER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
 }
 
@@ -463,13 +355,14 @@ void right_lower_leg2()
 	glBindTexture(GL_TEXTURE_2D, texture[7]);
 	glPushMatrix();
 	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(rll, LOWER_LEG_RADIUS, LOWER_LEG_RADIUS, LOWER_LEG_HEIGHT, 10, 10);
+	gluCylinder(rll2, LOWER_LEG_RADIUS, LOWER_LEG_RADIUS, LOWER_LEG_HEIGHT, 10, 10);
 	glPopMatrix();
 }
 
 //method objek spider
 void torso()
 {
+	glBindTexture(GL_TEXTURE_2D, texture[0]);
 	glPushMatrix();
 	glScalef(TORSO_RADIUS, TORSO_LENGTH, TORSO_RADIUS);
 	gluSphere(t, 1.0, 10, 10);
@@ -478,6 +371,7 @@ void torso()
 
 void upper_arm_1()
 {
+	glBindTexture(GL_TEXTURE_2D, texture[0]);
 	glPushMatrix();
 	glRotatef(-45.0, 0.0, 1.0, 0.0);
 	gluCylinder(ua1, ARM_RADIUS, ARM_RADIUS, UPPER_ARM_LENGTH, 10, 10);
@@ -486,7 +380,7 @@ void upper_arm_1()
 
 void lower_arm_1()
 {
-
+	glBindTexture(GL_TEXTURE_2D, texture[0]);
 	glPushMatrix();
 	glRotatef(-135.0, 0.0, 1.0, 0.0);
 	gluCylinder(la1, ARM_RADIUS, ARM_RADIUS, LOWER_ARM_LENGTH, 10, 10);
@@ -495,7 +389,7 @@ void lower_arm_1()
 
 void upper_arm_2()
 {
-
+	glBindTexture(GL_TEXTURE_2D, texture[0]);
 	glPushMatrix();
 	glRotatef(45.0, 0.0, 1.0, 0.0);
 	gluCylinder(ua2, ARM_RADIUS, ARM_RADIUS, UPPER_ARM_LENGTH, 10, 10);
@@ -504,7 +398,7 @@ void upper_arm_2()
 
 void lower_arm_2()
 {
-
+	glBindTexture(GL_TEXTURE_2D, texture[0]);
 	glPushMatrix();
 	glRotatef(135.0, 0.0, 1.0, 0.0);
 	gluCylinder(la2, ARM_RADIUS, ARM_RADIUS, LOWER_ARM_LENGTH, 10, 10);
@@ -513,7 +407,7 @@ void lower_arm_2()
 
 void upper_arm_3()
 {
-
+	glBindTexture(GL_TEXTURE_2D, texture[0]);
 	glPushMatrix();
 	glRotatef(-45.0, 0.0, 1.0, 0.0);
 	gluCylinder(ua3, ARM_RADIUS, ARM_RADIUS, UPPER_ARM_LENGTH, 10, 10);
@@ -523,7 +417,7 @@ void upper_arm_3()
 
 void lower_arm_3()
 {
-
+	glBindTexture(GL_TEXTURE_2D, texture[0]);
 	glPushMatrix();
 	glRotatef(-135.0, 0.0, 1.0, 0.0);
 	gluCylinder(la3, ARM_RADIUS, ARM_RADIUS, LOWER_ARM_LENGTH, 10, 10);
@@ -532,7 +426,7 @@ void lower_arm_3()
 
 void upper_arm_4()
 {
-
+	glBindTexture(GL_TEXTURE_2D, texture[0]);
 	glPushMatrix();
 	glRotatef(45.0, 0.0, 1.0, 0.0);
 	gluCylinder(ua4, ARM_RADIUS, ARM_RADIUS, UPPER_ARM_LENGTH, 10, 10);
@@ -541,7 +435,7 @@ void upper_arm_4()
 
 void lower_arm_4()
 {
-
+	glBindTexture(GL_TEXTURE_2D, texture[0]);
 	glPushMatrix();
 	glRotatef(135.0, 0.0, 1.0, 0.0);
 	gluCylinder(la4, ARM_RADIUS, ARM_RADIUS, LOWER_ARM_LENGTH, 10, 10);
@@ -559,26 +453,26 @@ void display(void)
 	{
 		glTranslated(camera.translation[0], camera.translation[1], camera.translation[2]);
 	}
-	else if (view.compare("dog") == 0)
+	else if (view.compare("spider") == 0)
 	{
-		if (dog.direction.compare("left") == 0)
+		if (spider.direction.compare("left") == 0)
 		{
-			glTranslated(dog.translation[2], dog.translation[1] + 11, -dog.translation[0] - 15);
+			glTranslated(spider.translation[2], spider.translation[1] + 15, -spider.translation[0] - 7.5);
 			glRotated(-90, 0, 1, 0);
 		}
-		else if (dog.direction.compare("right") == 0)
+		else if (spider.direction.compare("right") == 0)
 		{
-			glTranslated(-dog.translation[2], dog.translation[1] + 11, dog.translation[0] - 15);
+			glTranslated(-spider.translation[2], spider.translation[1] + 15, spider.translation[0] - 7.5);
 			glRotated(90, 0, 1, 0);
 		}
-		else if (dog.direction.compare("up") == 0)
+		else if (spider.direction.compare("up") == 0)
 		{
-			glTranslated(-dog.translation[0], dog.translation[1] + 11, -dog.translation[2] - 15);
+			glTranslated(-spider.translation[0], spider.translation[1] + 15, -spider.translation[2] - 7.5);
 			glRotated(0, 0, 1, 0);
 		}
 		else
 		{
-			glTranslated(dog.translation[0], dog.translation[1] + 11, dog.translation[2] - 15);
+			glTranslated(spider.translation[0], spider.translation[1] + 15, spider.translation[2] - 7.5);
 			glRotated(180, 0, 1, 0);
 		}
 
@@ -632,129 +526,55 @@ void display(void)
 
 	objmode.compare("shading") == 0 ? glPolygonMode(GL_FRONT_AND_BACK, GL_FILL) : glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glEnable(GL_TEXTURE_2D);
-
-
-	//set posisi dan gambar anjing
-	glPushMatrix();
-	glTranslated(dog.translation[0], dog.translation[1], dog.translation[2]);
-	glRotatef(dog.rotation, 0, 1, 0);
-
-	glRotatef(thetaDog[0], 0.0, 1.0, 0.0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, body_node.m);
-
-	glLoadIdentity();
-	glTranslatef(-6.5, 0.0, 0.0);
-	glRotatef(thetaDog[1], 1.0, 0.0, 0.0);
-	glRotatef(thetaDog[2], 0.0, 1.0, 0.0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, head_node.m);
-
-	glLoadIdentity();
-	glTranslatef(-4.5, 0.0, 0.5);
-	glRotatef(thetaDog[3], 0.0, 0.0, 1.0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, lua_node.m);
-
-	glLoadIdentity();
-	glTranslatef(-4.5, 0.0, -0.5);
-	glRotatef(thetaDog[5], 0.0, 0.0, 1.0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, rua_node.m);
-
-	glLoadIdentity();
-	glTranslatef(-1.0, 0.0, 0.5);
-	glRotatef(thetaDog[7], 0.0, 0.0, 1.0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, lul_node.m);
-
-	glLoadIdentity();
-	glTranslatef(-1.0, 0.0, -0.5);
-	glRotatef(thetaDog[9], 0.0, 0.0, 1.0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, rul_node.m);
-
-	glLoadIdentity();
-	glTranslatef(0.0, 3.0, 0.0);
-	glRotatef(thetaDog[4], 0.0, 0.0, 1.0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, lla_node.m);
-
-	glLoadIdentity();
-	glTranslatef(0.0, 3.0, 0.0);
-	glRotatef(thetaDog[6], 0.0, 0.0, 1.0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, rla_node.m);
-
-	glLoadIdentity();
-	glTranslatef(0.0, 3.0, 0.0);
-	glRotatef(thetaDog[8], 0.0, 0.0, 1.0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, lll_node.m);
-
-	glLoadIdentity();
-	glTranslatef(0.0, 3.0, 0.0);
-	glRotatef(thetaDog[10], 0.0, 0.0, 1.0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, rll_node.m);
-
-	glLoadIdentity();
-	glRotatef(thetaDog[11], 1.0, 1.0, 0.0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, tail_node.m);
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	//gambar shadow
-	glLoadIdentity();
-	glMultMatrixf((GLfloat *)baseshadow);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_LIGHTING);
-	glColor3f(0.0, 0.0, 0.0);
-	traverse(&body_node);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
-
-	glLoadIdentity();
-	traverse(&body_node);
-	glPopMatrix();
 
 	//gambar spider
 	glPushMatrix();
 	glTranslated(spider.translation[0], spider.translation[1], spider.translation[2]);
 	glRotatef(spider.rotation, 0, 1, 0);
 
-	glRotatef(theta[0], 0.0, 1.0, 0.0);
-	glRotatef(theta[9], 1.0, 0.0, 0.0);
+	glRotatef(thetaSpider[0], 0.0, 1.0, 0.0);
+	glRotatef(thetaSpider[9], 1.0, 0.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, t_node.m);
 
 	glLoadIdentity();
 	glTranslatef(-0.5 * TORSO_RADIUS, 0.5 * TORSO_LENGTH, 0.0);
-	glRotatef(theta[1], 0.0, 1.0, 0.0);
+	glRotatef(thetaSpider[1], 0.0, 1.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, ua1_node.m);
 
 	glLoadIdentity();
 	glTranslatef(0.5 * TORSO_RADIUS, 0.5 * TORSO_LENGTH, 0.0);
-	glRotatef(theta[3], 0.0, 1.0, 0.0);
+	glRotatef(thetaSpider[3], 0.0, 1.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, ua2_node.m);
 
 	glLoadIdentity();
 	glTranslatef(-0.5 * TORSO_RADIUS, -0.5 * TORSO_LENGTH, 0.0);
-	glRotatef(theta[5], 0.0, 1.0, 0.0);
+	glRotatef(thetaSpider[5], 0.0, 1.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, ua3_node.m);
 
 	glLoadIdentity();
 	glTranslatef(0.5 * TORSO_RADIUS, -0.5 * TORSO_LENGTH, 0.0);
-	glRotatef(theta[7], 0.0, 1.0, 0.0);
+	glRotatef(thetaSpider[7], 0.0, 1.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, ua4_node.m);
 
 	glLoadIdentity();
 	glTranslatef(-0.75 * UPPER_ARM_LENGTH, 0.0, 0.75 * UPPER_ARM_LENGTH);
-	glRotatef(theta[2], 0.0, 1.0, 0.0);
+	glRotatef(thetaSpider[2], 0.0, 1.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, la1_node.m);
 
 	glLoadIdentity();
 	glTranslatef(0.75 * UPPER_ARM_LENGTH, 0.0, 0.75 * UPPER_ARM_LENGTH);
-	glRotatef(theta[4], 0.0, 1.0, 0.0);
+	glRotatef(thetaSpider[4], 0.0, 1.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, la2_node.m);
 
 	glLoadIdentity();
 	glTranslatef(-0.75 * UPPER_ARM_LENGTH, 0.0, 0.75 * UPPER_ARM_LENGTH);
-	glRotatef(theta[6], 0.0, 1.0, 0.0);
+	glRotatef(thetaSpider[6], 0.0, 1.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, la3_node.m);
 
 	glLoadIdentity();
 	glTranslatef(0.75 * UPPER_ARM_LENGTH, 0.0, 0.75 * UPPER_ARM_LENGTH);
-	glRotatef(theta[8], 0.0, 1.0, 0.0);
+	glRotatef(thetaSpider[8], 0.0, 1.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, la4_node.m);
 
 	glLoadIdentity();
@@ -1002,57 +822,31 @@ void myinit()
 	//quadric untuk objek spider
 	t = gluNewQuadric();
 	gluQuadricDrawStyle(t, GLU_FILL);
+	gluQuadricTexture(t, GL_TRUE);
 	ua1 = gluNewQuadric();
 	gluQuadricDrawStyle(ua1, GLU_FILL);
+	gluQuadricTexture(ua1, GL_TRUE);
 	la1 = gluNewQuadric();
 	gluQuadricDrawStyle(la1, GLU_FILL);
+	gluQuadricTexture(la1, GL_TRUE);
 	ua2 = gluNewQuadric();
 	gluQuadricDrawStyle(ua2, GLU_FILL);
+	gluQuadricTexture(ua2, GL_TRUE);
 	la2 = gluNewQuadric();
 	gluQuadricDrawStyle(la2, GLU_FILL);
+	gluQuadricTexture(la2, GL_TRUE);
 	ua3 = gluNewQuadric();
 	gluQuadricDrawStyle(ua3, GLU_FILL);
+	gluQuadricTexture(ua3, GL_TRUE);
 	la3 = gluNewQuadric();
 	gluQuadricDrawStyle(la3, GLU_FILL);
+	gluQuadricTexture(la3, GL_TRUE);
 	ua4 = gluNewQuadric();
 	gluQuadricDrawStyle(ua4, GLU_FILL);
+	gluQuadricTexture(ua4, GL_TRUE);
 	la4 = gluNewQuadric();
 	gluQuadricDrawStyle(la4, GLU_FILL);
-
-	//quadric untuk objek anjing
-	h = gluNewQuadric();
-	gluQuadricDrawStyle(h, GLU_FILL);
-	gluQuadricTexture(h, GL_TRUE);
-	b = gluNewQuadric();
-	gluQuadricDrawStyle(b, GLU_FILL);
-	gluQuadricTexture(b, GL_TRUE);
-	lua = gluNewQuadric();
-	gluQuadricDrawStyle(lua, GLU_FILL);
-	gluQuadricTexture(lua, GL_TRUE);
-	lla = gluNewQuadric();
-	gluQuadricDrawStyle(lla, GLU_FILL);
-	gluQuadricTexture(lla, GL_TRUE);
-	rua = gluNewQuadric();
-	gluQuadricDrawStyle(rua, GLU_FILL);
-	gluQuadricTexture(rua, GL_TRUE);
-	rla = gluNewQuadric();
-	gluQuadricDrawStyle(rla, GLU_FILL);
-	gluQuadricTexture(rla, GL_TRUE);
-	lul = gluNewQuadric();
-	gluQuadricDrawStyle(lul, GLU_FILL);
-	gluQuadricTexture(lul, GL_TRUE);
-	lll = gluNewQuadric();
-	gluQuadricDrawStyle(lll, GLU_FILL);
-	gluQuadricTexture(lll, GL_TRUE);
-	rul = gluNewQuadric();
-	gluQuadricDrawStyle(rul, GLU_FILL);
-	gluQuadricTexture(rul, GL_TRUE);
-	rll = gluNewQuadric();
-	gluQuadricDrawStyle(rll, GLU_FILL);
-	gluQuadricTexture(rll, GL_TRUE);
-	t1 = gluNewQuadric();
-	gluQuadricDrawStyle(t1, GLU_FILL);
-	gluQuadricTexture(t1, GL_TRUE);
+	gluQuadricTexture(la4, GL_TRUE);
 
 	//quadric untuk kereta
 	e = gluNewQuadric();
@@ -1159,51 +953,6 @@ void myinit()
 	la4_node.f = lower_arm_4;
 	la4_node.sibling = NULL;
 	la4_node.child = NULL;
-
-	//set tree untuk anjing
-	body_node.f = body;
-	body_node.sibling = NULL;
-	body_node.child = &head_node;
-
-	head_node.f = head;
-	head_node.sibling = &lua_node;
-	head_node.child = NULL;
-
-	lua_node.f = left_upper_arm;
-	lua_node.sibling = &rua_node;
-	lua_node.child = &lla_node;
-
-	rua_node.f = right_upper_arm;
-	rua_node.sibling = &lul_node;
-	rua_node.child = &rla_node;
-
-	lul_node.f = left_upper_leg;
-	lul_node.sibling = &rul_node;
-	lul_node.child = &lll_node;
-
-	rul_node.f = right_upper_leg;
-	rul_node.sibling = &tail_node;
-	rul_node.child = &rll_node;
-
-	tail_node.f = tail;
-	tail_node.sibling = NULL;
-	tail_node.child = NULL;
-
-	lla_node.f = left_lower_arm;
-	lla_node.sibling = NULL;
-	lla_node.child = NULL;
-
-	rla_node.f = right_lower_arm;
-	rla_node.sibling = NULL;
-	rla_node.child = NULL;
-
-	lll_node.f = left_lower_leg;
-	lll_node.sibling = NULL;
-	lll_node.child = NULL;
-
-	rll_node.f = right_lower_leg;
-	rll_node.sibling = NULL;
-	rll_node.child = NULL;
 
 	//set tree untuk lokomotif
 	glLoadIdentity();
@@ -1343,28 +1092,28 @@ void specialKey(int key, int x, int y)
 			break;
 		}
 	}
-	else if (control.compare("dog") == 0)
+	else if (control.compare("spider") == 0)
 	{
 		switch (key) {
 		case GLUT_KEY_LEFT:
-			dog.direction = "left";
-			dog.translation[0] -= 0.25;
-			dog.rotation = 0;
+			spider.direction = "left";
+			spider.translation[0] -= 0.25;
+			spider.rotation = 0;
 			break;
 		case GLUT_KEY_RIGHT:
-			dog.direction = "right";
-			dog.translation[0] += 0.25;
-			dog.rotation = 180;
+			spider.direction = "right";
+			spider.translation[0] += 0.25;
+			spider.rotation = 180;
 			break;
 		case GLUT_KEY_UP:
-			dog.direction = "up";
-			dog.translation[2] -= 0.25;
-			dog.rotation = -90;
+			spider.direction = "up";
+			spider.translation[2] -= 0.25;
+			spider.rotation = -90;
 			break;
 		case GLUT_KEY_DOWN:
-			dog.direction = "down";
-			dog.translation[2] += 0.25;
-			dog.rotation = 90;
+			spider.direction = "down";
+			spider.translation[2] += 0.25;
+			spider.rotation = 90;
 			break;
 		}
 	}
@@ -1462,28 +1211,20 @@ void initObjectPos()
 
 	//posisi semula spider
 	spider.direction = "left";
-	spider.translation[0] = -25;
+	spider.translation[0] = -10;
 	spider.translation[1] = -10.0;
 	spider.translation[2] = 20;
 	spider.rotation = 0;
-	theta[0] = 90.0;
-	theta[9] = -90.0;
-
-	//posisi semula anjing
-	thetaDog[3] = 180.0;
-	thetaDog[4] = 0.0;
-	thetaDog[5] = 180.0;
-	thetaDog[6] = 0.0;
-	thetaDog[7] = 180.0;
-	thetaDog[8] = 0.0;
-	thetaDog[9] = 180.0;
-	thetaDog[10] = 0.0;
-	thetaDog[11] = 90.0;
-	dog.direction = "left";
-	dog.translation[0] = -10;
-	dog.translation[1] = -5.5;
-	dog.translation[2] = 20;
-	dog.rotation = 0;
+	thetaSpider[0] = 90.0;
+	thetaSpider[1] = 0.0;
+	thetaSpider[2] = 0.0;
+	thetaSpider[3] = 0.0;
+	thetaSpider[4] = 0.0;
+	thetaSpider[5] = 0.0;
+	thetaSpider[6] = 0.0;
+	thetaSpider[7] = 0.0;
+	thetaSpider[8] = 0.0;
+	thetaSpider[9] = -90.0;
 
 	//posisi semula train
 	thetaTrain[0] = 0;
@@ -1515,69 +1256,31 @@ void initObjectPos()
 void animation()
 {
 	if (mode.compare("animation") == 0) {
-		//animasi anjing
-		for (int i = 0; i < 4; i++) {
-			if (thetaDog[2 * i + 3] > 225) forwardDog[i] = false;
-			if (thetaDog[2 * i + 3] < 135) forwardDog[i] = true;
-			if (forwardDog[i]) thetaDog[2 * i + 3] += 2.5;
-			else thetaDog[2 * i + 3] -= 2.5;
-		}
-		if (thetaDog[11] > 135) forwardDog[4] = false;
-		if (thetaDog[11] < 45) forwardDog[4] = true;
-		if (forwardDog[4]) thetaDog[11] += 2.5;
-		else thetaDog[11] -= 2.5;
-
-		if (dog.direction.compare("left") == 0 && dog.translation[0] <= -20.0)
-		{
-			dog.direction = "up";
-			dog.rotation = -90;
-		}
-		if (dog.direction.compare("up") == 0 && dog.translation[2] <= -20.0)
-		{
-			dog.direction = "right";
-			dog.rotation = 180;
-		}
-		if (dog.direction.compare("right") == 0 && dog.translation[0] >= 20.0)
-		{
-			dog.direction = "down";
-			dog.rotation = 90;
-		}
-		if (dog.direction.compare("down") == 0 && dog.translation[2] >= 20.0)
-		{
-			dog.direction = "left";
-			dog.rotation = 0;
-		}
-
-		if (dog.direction.compare("left") == 0) dog.translation[0] -= 0.1;
-		else if (dog.direction.compare("up") == 0) dog.translation[2] -= 0.1;
-		else if (dog.direction.compare("right") == 0) dog.translation[0] += 0.1;
-		else dog.translation[2] += 0.1;
-
 		//animasi spider
 		if(forwardSpider)
 		{
-			theta[1] += 1.0;
-			theta[7] -= 1.0;
+			thetaSpider[1] += 2.0;
+			thetaSpider[7] -= 2.0;
 
-			if(theta[5] >= 0.0)
+			if(thetaSpider[5] >= 0.0)
 			{
-				theta[3] += 1.0;
-				theta[5] -= 1.0;
+				thetaSpider[3] += 2.0;
+				thetaSpider[5] -= 2.0;
 			}
 
-			if(theta[1] >= 45.0)
+			if(thetaSpider[1] >= 45.0)
 			{
 				forwardSpider = false;
 			}
 		}
 		else
 		{
-			theta[1] -= 1.0;
-			theta[7] += 1.0;
-			theta[3] -= 1.0;
-			theta[5] += 1.0;
+			thetaSpider[1] -= 2.0;
+			thetaSpider[7] += 2.0;
+			thetaSpider[3] -= 2.0;
+			thetaSpider[5] += 2.0;
 
-			if(theta[1] <= 0.0)
+			if(thetaSpider[1] <= 0.0)
 			{
 				forwardSpider = true;
 			}
@@ -1692,17 +1395,17 @@ bool LoadTextureRAW(int wrap, GLuint * texture)
 	int width, height;
 	BYTE * data;
 	FILE * file;
-
-	// open texture data
-	file = fopen("fur1.raw", "rb");
-	if (file == NULL) return 0;
-
 	// allocate buffer
 	width = 256;
 	height = 256;
 	data = (unsigned char *)malloc(width * height * 3); //3 for each R,G,B
 
 														// read texture data
+
+	// open texture data
+	file = fopen("spider.raw", "rb");
+	if (file == NULL) return 0;
+
 	fread(data, width * height * 3, 1, file);
 	//fclose(file);
 
@@ -1726,36 +1429,6 @@ bool LoadTextureRAW(int wrap, GLuint * texture)
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap ? GL_REPEAT : GL_CLAMP);
 
 	// build our texture MIP maps
-	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
-
-	file = fopen("fur2.raw", "rb");
-	if (file == NULL) return 0;
-	fread(data, width * height * 3, 1, file);
-	glBindTexture(GL_TEXTURE_2D, texture[1]);
-
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap ? GL_REPEAT : GL_CLAMP);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap ? GL_REPEAT : GL_CLAMP);
-
-	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
-
-	file = fopen("fur3.raw", "rb");
-	if (file == NULL) return 0;
-	fread(data, width * height * 3, 1, file);
-	glBindTexture(GL_TEXTURE_2D, texture[2]);
-
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap ? GL_REPEAT : GL_CLAMP);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap ? GL_REPEAT : GL_CLAMP);
-
 	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
 
 	file = fopen("texture1.raw", "rb");
@@ -1906,7 +1579,7 @@ void viewOptions(int id)
 		view = "camera";
 		break;
 	case 1:
-		view = "dog";
+		view = "spider";
 		break;
 	case 2:
 		view = "train";
@@ -1925,7 +1598,7 @@ void controlOptions(int id)
 		control = "camera";
 		break;
 	case 1:
-		control = "dog";
+		control = "spider";
 		break;
 	case 2:
 		control = "train";
@@ -1977,25 +1650,19 @@ void modeOptions(int id)
 	mode = id == 0 ? "animation" : "interactive";
 	initObjectPos();
 	if (id == 0) {
-		thetaDog[0] = 0.0;
-		thetaDog[1] = 0.0;
-		thetaDog[2] = 0.0;
-		thetaDog[3] = 180.0;
-		thetaDog[4] = 45.0;
-		thetaDog[5] = 180.0;
-		thetaDog[6] = 45.0;
-		thetaDog[7] = 180.0;
-		thetaDog[8] = 45.0;
-		thetaDog[9] = 180.0;
-		thetaDog[10] = 45.0;
-
-		forwardDog[0] = true;
-		forwardDog[1] = false;
-		forwardDog[2] = true;
-		forwardDog[3] = false;
-
 		forwardOfficer[0] = true;
 		forwardOfficer[1] = false;
+
+		thetaSpider[0] = 90.0;
+		thetaSpider[1] = 0.0;
+		thetaSpider[2] = 0.0;
+		thetaSpider[3] = 0.0;
+		thetaSpider[4] = 0.0;
+		thetaSpider[5] = 0.0;
+		thetaSpider[6] = 0.0;
+		thetaSpider[7] = 0.0;
+		thetaSpider[8] = 0.0;
+		thetaSpider[9] = -90.0;
 	}
 }
 
@@ -2004,7 +1671,7 @@ void main(int argc, char **argv)
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 	glutInitWindowSize(900, 600);
-	glutCreateWindow("robot binatang");
+	glutCreateWindow("Tugas Akhir - Blakoted");
 	myinit();
 	glutReshapeFunc(myReshape);
 	glutDisplayFunc(display);
@@ -2013,13 +1680,13 @@ void main(int argc, char **argv)
 
 	view_menu = glutCreateMenu(viewOptions);
 	glutAddMenuEntry("Camera", 0);
-	glutAddMenuEntry("Dog", 1);
+	glutAddMenuEntry("spider", 1);
 	glutAddMenuEntry("Train", 2);
 	glutAddMenuEntry("Officer", 3);
 
 	control_menu = glutCreateMenu(controlOptions);
 	glutAddMenuEntry("Camera", 0);
-	glutAddMenuEntry("Dog", 1);
+	glutAddMenuEntry("spider", 1);
 	glutAddMenuEntry("Train", 2);
 	glutAddMenuEntry("Officer", 3);
 	glutAddMenuEntry("Lamp 3", 4);
