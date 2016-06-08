@@ -124,6 +124,9 @@ GLfloat light2_position[] = { 15.0, 10.0, -15.0, 1.0 };
 GLfloat light3_position[] = { lamp3.translation[0], lamp3.translation[1], lamp3.translation[2], 1.0 };
 GLfloat light4_position[] = { lamp4.translation[0], lamp4.translation[1], lamp4.translation[2], 1.0 };
 
+float i_global = 0.0;
+const float DEG2RAD = 3.14159/180;
+
 /******************** begin shadow code ********************/
 
 /* Taken from the projshadow.c - by Tom McReynolds, SGI */
@@ -721,22 +724,22 @@ void display(void)
 
 	glPushMatrix();
 	glTranslatef(-15.0, 10.0, -15.0);
-	glutSolidCube(1);
+	glutSolidCube(2);
 	glPopMatrix();
 
 	glPushMatrix();
 	glTranslatef(15.0, 10.0, -15.0);
-	glutSolidCube(1);
+	glutSolidCube(2);
 	glPopMatrix();
 
 	glPushMatrix();
 	glTranslatef(lamp3.translation[0], lamp3.translation[1], lamp3.translation[2]);
-	glutSolidCube(1);
+	glutSolidCube(2);
 	glPopMatrix();
 
 	glPushMatrix();
 	glTranslatef(lamp4.translation[0], lamp4.translation[1], lamp4.translation[2]);
-	glutSolidCube(1);
+	glutSolidCube(2);
 	glPopMatrix();
 
 	glEnable(GL_TEXTURE_2D);
@@ -749,24 +752,23 @@ void display(void)
     glTranslatef(-0.5,-0.5,0.0);
     glMatrixMode(GL_MODELVIEW);
 
-    //set posisi dan gambar lantai
-	glBindTexture(GL_TEXTURE_2D, texture[9]);
-	GLfloat v0[3], v1[3], v2[3], v3[3];
-	glBegin(GL_POLYGON);
-	glNormal3f(0, 1, 0);
-	v0[1] = v1[1] = v2[1] = v3[1] = -10.5f;
-	v0[0] = v0[2] = v1[0] = v3[2] = -32.75;
-	v1[2] = v2[0] = v2[2] = v3[0] = 32.75;
-	glTexCoord2f(0.0, 0.0);
-	glVertex3fv(v0);
-	glTexCoord2f(0.0, 1.0);
-	glVertex3fv(v1);
-	glTexCoord2f(1.0, 0.0);
-	glVertex3fv(v2);
-	glTexCoord2f(1.0, 1.0);
-	glVertex3fv(v3);
-	glEnd();
+    //set posisi dan gambar lanta
+     glBindTexture(GL_TEXTURE_2D, texture[9]);
+     glBegin(GL_POLYGON);
 
+   for (int i=0; i <= 360; i++)
+   {
+      float degInRad = i*DEG2RAD;
+      float xcos = cos(degInRad);
+      float ysin = sin(degInRad);
+      float tx = xcos * 0.5 + 0.5;
+	  float ty = ysin * 0.5 + 0.5;
+
+      glTexCoord2f(tx, ty);
+      glVertex3f(xcos*33, -10.5, ysin*33);
+   }
+
+   glEnd();
 	glLoadIdentity();
 	glutSwapBuffers();
 }
@@ -1265,6 +1267,8 @@ void initObjectPos()
 void animation()
 {
 	if (mode.compare("animation") == 0) {
+		float degInRad, xcos, ysin;
+
 		//animasi spider
 		if(forwardSpider)
 		{
@@ -1295,31 +1299,13 @@ void animation()
 			}
 		}
 
-		if (spider.direction.compare("left") == 0 && spider.translation[0] <= -20.0)
-		{
-			spider.direction = "up";
-			spider.rotation = -90;
-		}
-		if (spider.direction.compare("up") == 0 && spider.translation[2] <= -20.0)
-		{
-			spider.direction = "right";
-			spider.rotation = 180;
-		}
-		if (spider.direction.compare("right") == 0 && spider.translation[0] >= 20.0)
-		{
-			spider.direction = "down";
-			spider.rotation = 90;
-		}
-		if (spider.direction.compare("down") == 0 && spider.translation[2] >= 20.0)
-		{
-			spider.direction = "left";
-			spider.rotation = 0;
-		}
+	    degInRad = i_global*DEG2RAD;
+	    xcos = cos(degInRad);
+	    ysin = sin(degInRad);
 
-		if (spider.direction.compare("left") == 0) spider.translation[0] -= 0.1;
-		else if (spider.direction.compare("up") == 0) spider.translation[2] -= 0.1;
-		else if (spider.direction.compare("right") == 0) spider.translation[0] += 0.1;
-		else spider.translation[2] += 0.1;
+	    spider.translation[0] = xcos*22;
+	    spider.translation[2] = ysin*22;
+	    spider.rotation = -i_global + 90.0;
 
 		//animasi train
 		thetaTrain[0] += 2.5;
@@ -1336,31 +1322,13 @@ void animation()
 			else thetaOfficer[2 * i + 3] -= 2.5;
 		}
 
-		if (train.direction.compare("left") == 0 && train.translation[0] <= -20.0)
-		{
-			train.direction = "up";
-			train.rotation = -90;
-		}
-		if (train.direction.compare("up") == 0 && train.translation[2] <= -20.0)
-		{
-			train.direction = "right";
-			train.rotation = 180;
-		}
-		if (train.direction.compare("right") == 0 && train.translation[0] >= 20.0)
-		{
-			train.direction = "down";
-			train.rotation = 90;
-		}
-		if (train.direction.compare("down") == 0 && train.translation[2] >= 20.0)
-		{
-			train.direction = "left";
-			train.rotation = 0;
-		}
+		degInRad = (i_global-90.0)*DEG2RAD;
+	    xcos = cos(degInRad);
+	    ysin = sin(degInRad);
 
-		if (train.direction.compare("left") == 0) train.translation[0] -= 0.1;
-		else if (train.direction.compare("up") == 0) train.translation[2] -= 0.1;
-		else if (train.direction.compare("right") == 0) train.translation[0] += 0.1;
-		else train.translation[2] += 0.1;
+	    train.translation[0] = xcos*22;
+	    train.translation[2] = ysin*22;
+	    train.rotation = -(i_global-90.0) + 90.0;
 
 		//animasi officer
 		for (int i = 0; i < 2; i++) {
@@ -1370,31 +1338,17 @@ void animation()
 			else thetaOfficer[2 * i + 3] -= 2.5;
 		}
 
-		if (officer.direction.compare("left") == 0 && officer.translation[0] <= -20.0)
-		{
-			officer.direction = "up";
-			officer.rotation = -90;
-		}
-		if (officer.direction.compare("up") == 0 && officer.translation[2] <= -20.0)
-		{
-			officer.direction = "right";
-			officer.rotation = 180;
-		}
-		if (officer.direction.compare("right") == 0 && officer.translation[0] >= 20.0)
-		{
-			officer.direction = "down";
-			officer.rotation = 90;
-		}
-		if (officer.direction.compare("down") == 0 && officer.translation[2] >= 20.0)
-		{
-			officer.direction = "left";
-			officer.rotation = 0;
-		}
+		degInRad = (i_global-45.0)*DEG2RAD;
+	    xcos = cos(degInRad);
+	    ysin = sin(degInRad);
 
-		if (officer.direction.compare("left") == 0) officer.translation[0] -= 0.1;
-		else if (officer.direction.compare("up") == 0) officer.translation[2] -= 0.1;
-		else if (officer.direction.compare("right") == 0) officer.translation[0] += 0.1;
-		else officer.translation[2] += 0.1;
+	    officer.translation[0] = xcos*22;
+	    officer.translation[2] = ysin*22;
+	    officer.rotation = -(i_global-45.0) + 90.0;
+
+		//update i_global
+		i_global += 0.25;
+	    if(i_global >= 360.0) i_global = 0.0;
 	}
 	glutPostRedisplay();
 }
@@ -1672,6 +1626,8 @@ void modeOptions(int id)
 		thetaSpider[7] = 0.0;
 		thetaSpider[8] = 0.0;
 		thetaSpider[9] = -90.0;
+
+		i_global = 135.0;
 	}
 }
 
