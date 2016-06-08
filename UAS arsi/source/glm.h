@@ -12,7 +12,7 @@
  */
 
 
-#include <GL/glut.h>
+#include <glut.h>
 
 
 #ifndef M_PI

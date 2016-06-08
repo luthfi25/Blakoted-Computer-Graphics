@@ -5,7 +5,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdarg.h>
-#include <GL/glut.h>
+#include <glut.h>
 #include "glm.h"
 
 #define BASESIZE 100.0
@@ -71,14 +71,14 @@ GLvoid *font_style = GLUT_BITMAP_TIMES_ROMAN_10;
 void pacman(void)
 {
 	if (!pachead) {
-		if (isWireView) pachead = glmReadOBJ("data/wire_round_top.obj"); else pachead = glmReadOBJ("data/round_top.obj");
+		pachead = glmReadOBJ("round_top.obj");
 		if (!pachead) exit(0);
 		glmUnitize(pachead);
 		glmFacetNormals(pachead);
 		glmVertexNormals(pachead, 90.0);
 	}
 	if (!pacbtm) {
-		if (isWireView) pacbtm = glmReadOBJ("data/wire_round_btm.obj"); else pacbtm = glmReadOBJ("data/round_btm.obj");
+		pacbtm = glmReadOBJ("round_btm.obj");
 		if (!pacbtm) exit(0);
 		glmUnitize(pacbtm);
 		glmFacetNormals(pacbtm);
@@ -101,14 +101,14 @@ void squman(void)
 {
 
 	if (!squhead) {
-		if (isWireView) squhead = glmReadOBJ("data/wire_square_top.obj"); else squhead = glmReadOBJ("data/square_top.obj");
+		if (isWireView) squhead = glmReadOBJ("wire_square_top.obj"); else squhead = glmReadOBJ("square_top.obj");
 		if (!squhead) exit(0);
 		glmUnitize(squhead);
 		glmFacetNormals(squhead);
 		glmVertexNormals(squhead, 90.0);
 	}
 	if (!squbtm) {
-		if (isWireView) squbtm = glmReadOBJ("data/wire_square_btm.obj"); else squbtm = glmReadOBJ("data/square_btm.obj");
+		if (isWireView) squbtm = glmReadOBJ("wire_square_btm.obj"); else squbtm = glmReadOBJ("square_btm.obj");
 		if (!squbtm) exit(0);
 		glmUnitize(squbtm);
 		glmFacetNormals(squbtm);
