@@ -17,9 +17,8 @@ struct Object {
 	std::string direction;
 };
 Object camera;
-//Object train;
 Object wallE;
-Object officer;
+Object human;
 Object lamp3;
 Object lamp4;
 Object spider;
@@ -30,14 +29,6 @@ Object spider;
 #define UPPER_ARM_LENGTH 3.75
 #define LOWER_ARM_LENGTH 2.5
 #define ARM_RADIUS 0.5
-
-#define ENGINE_RADIUS 3.0
-#define ENGINE_HEIGHT 7.0
-#define CAB_RADIUS 4.0
-#define CAB_HEIGHT 9.0
-#define WHEEL_RADIUS 1.0
-#define SS_RADIUS 0.5
-#define SS_HEIGHT 1.5
 
 #define TORSO_HEIGHT 5.0
 #define UPPER_LEG_RADIUS  0.5
@@ -85,28 +76,23 @@ typedef struct treenode
 //untuk animasi
 static GLfloat thetaSpider[10] = { 0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0 };
 bool forwardSpider = true;
-//static GLfloat thetaTrain[2] = { 0.0, 0.0 };
-//GLfloat smokeStack = 0;
-//bool topStack = true;
 static GLfloat thetaWallE[11] = { 0.0, 0.0, 140.0, 40.0, -90.0, 6.5, -6.5, 0.0, 0.0, 0.0, 0.0 };
 bool stateWallE = true;
 float walleBodyTranslate = 0.0;
-static GLfloat thetaOfficer[12] = { 90.0, 0.0, 0.0, 90.0, 0.0, 90.0, 0.0, 180.0, 0.0, 180.0, 0.0, 90.0 };
-bool forwardOfficer[2];
+static GLfloat thetahuman[12] = { 90.0, 0.0, 0.0, 90.0, 0.0, 90.0, 0.0, 180.0, 0.0, 180.0, 0.0, 90.0 };
+bool forwardhuman[2];
 
 
 //quadric spider
 GLUquadricObj *t, *ua1, *la1, *ua2, *la2, *ua3, *la3, *ua4, *la4, *te;
-//quadric kereta
-//GLUquadricObj *e, *c, *lfw, *lrw, *rfw, *rrw, *ss;
+//quadric wall-e
 GLUquadricObj *le, *re, *un, *ln, *b, *rua, *lua, *rla, *lla, *rw, *lw;
-//quadric officer
+//quadric human
 GLUquadricObj *t2, *h2, *lua2, *lla2, *rua2, *rla2, *lll2, *rll2, *rul2, *lul2;
 //quadric meja
 GLUquadricObj *ut1, *ut2, *ut3, *lt;
 
 treenode t_node, ua1_node, la1_node, ua2_node, la2_node, ua3_node, la3_node, ua4_node, la4_node;
-//treenode engine_node, cab_node, lfw_node, lrw_node, rfw_node, rrw_node, ss_node;
 treenode re_node, le_node, un_node, ln_node, b_node, rua_node, lua_node, rla_node, lla_node, rw_node, lw_node;
 treenode torso_node, head2_node, lua2_node, rua2_node, lll2_node, rll2_node, lla2_node, rla2_node, rul2_node, lul2_node;
 
@@ -136,7 +122,7 @@ GLfloat light2_position[] = { 15.0, 10.0, -15.0, 1.0 };
 GLfloat light3_position[] = { lamp3.translation[0], lamp3.translation[1], lamp3.translation[2], 1.0 };
 GLfloat light4_position[] = { lamp4.translation[0], lamp4.translation[1], lamp4.translation[2], 1.0 };
 
-float i_global = 0.0;
+float i_global = 135.0;
 const float DEG2RAD = 3.14159/180;
 
 /******************** begin shadow code ********************/
@@ -221,68 +207,6 @@ void traverse(treenode* root)
 	glPopMatrix();
 	if (root->sibling != NULL) traverse(root->sibling);
 }
-
-/*
-//Method objek kereta
-void engine() //membuat objek engine dari locomotive
-{
-	glBindTexture(GL_TEXTURE_2D, texture[3]);
-	glPushMatrix();
-	glRotatef(-90.0, 0.0, 1.0, 0.0);
-	gluCylinder(e, ENGINE_RADIUS, ENGINE_RADIUS, ENGINE_HEIGHT, 10, 10);
-	glPopMatrix();
-}
-
-void cab() //membuat objek cab dari locomotive
-{
-	glBindTexture(GL_TEXTURE_2D, texture[3]);
-	glPushMatrix();
-	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(c, CAB_RADIUS, CAB_RADIUS, CAB_HEIGHT, 10, 10);
-	glPopMatrix();
-}
-
-void left_front_wheel() //membuat objek roda dari locomotive
-{
-	glBindTexture(GL_TEXTURE_2D, texture[4]);
-	glPushMatrix();
-	gluSphere(lfw, WHEEL_RADIUS, 10, 10);
-	glPopMatrix();
-}
-
-void left_rear_wheel() //membuat objek roda dari locomotive
-{
-	glBindTexture(GL_TEXTURE_2D, texture[4]);
-	glPushMatrix();
-	gluSphere(lrw, WHEEL_RADIUS, 10, 10);
-	glPopMatrix();
-}
-
-void right_front_wheel() //membuat objek roda dari locomotive
-{
-	glBindTexture(GL_TEXTURE_2D, texture[4]);
-	glPushMatrix();
-	gluSphere(rfw, WHEEL_RADIUS, 10, 10);
-	glPopMatrix();
-}
-
-void right_rear_wheel() //membuat objek roda dari locomotive
-{
-	glBindTexture(GL_TEXTURE_2D, texture[4]);
-	glPushMatrix();
-	gluSphere(rrw, WHEEL_RADIUS, 10, 10);
-	glPopMatrix();
-}
-
-void smoke_stack() //membuat objek pembuangan uap dari locomotive
-{
-	glBindTexture(GL_TEXTURE_2D, texture[5]);
-	glPushMatrix();
-	glRotatef(-90.0, 1.0, 0.0, 0.0);
-	gluCylinder(ss, SS_RADIUS, SS_RADIUS + 0.5, SS_HEIGHT, 10, 10);
-	glPopMatrix();
-}
-*/
 
 //Method objek Wall E
 void wallErightEye() {
@@ -447,8 +371,7 @@ void wallEleftWheel() {
 	glPopMatrix();
 }
 
-
-//method objek officer
+//method objek human
 void torso2()
 {
 	glBindTexture(GL_TEXTURE_2D, texture[8]);
@@ -657,30 +580,7 @@ void display(void)
 			glRotated(180, 0, 1, 0);
 		}
 
-	}/*
-	else if (view.compare("train") == 0)
-	{
-		if (train.direction.compare("left") == 0)
-		{
-			glTranslated(train.translation[2], train.translation[1] + 12, -train.translation[0] - 22.5);
-			glRotated(-90, 0, 1, 0);
-		}
-		else if (train.direction.compare("right") == 0)
-		{
-			glTranslated(-train.translation[2], train.translation[1] + 12, train.translation[0] - 22.5);
-			glRotated(90, 0, 1, 0);
-		}
-		else if (train.direction.compare("up") == 0)
-		{
-			glTranslated(-train.translation[0], train.translation[1] + 12, -train.translation[2] - 22.5);
-			glRotated(0, 0, 1, 0);
-		}
-		else
-		{
-			glTranslated(train.translation[0], train.translation[1] + 12, train.translation[2] - 22.5);
-			glRotated(180, 0, 1, 0);
-		}
-	}*/
+	}
 	else if (view.compare("wallE") == 0)
 	{
 		if (wallE.direction.compare("left") == 0)
@@ -706,24 +606,24 @@ void display(void)
 	}
 	else
 	{
-		if (officer.direction.compare("left") == 0)
+		if (human.direction.compare("left") == 0)
 		{
-			glTranslated(officer.translation[2], officer.translation[1] + 5, -officer.translation[0] - 22.5);
+			glTranslated(human.translation[2], human.translation[1] + 5, -human.translation[0] - 22.5);
 			glRotated(-90, 0, 1, 0);
 		}
-		else if (officer.direction.compare("right") == 0)
+		else if (human.direction.compare("right") == 0)
 		{
-			glTranslated(-officer.translation[2], officer.translation[1] + 5, officer.translation[0] - 22.5);
+			glTranslated(-human.translation[2], human.translation[1] + 5, human.translation[0] - 22.5);
 			glRotated(90, 0, 1, 0);
 		}
-		else if (officer.direction.compare("up") == 0)
+		else if (human.direction.compare("up") == 0)
 		{
-			glTranslated(-officer.translation[0], officer.translation[1] + 5, -officer.translation[2] - 22.5);
+			glTranslated(-human.translation[0], human.translation[1] + 5, -human.translation[2] - 22.5);
 			glRotated(0, 0, 1, 0);
 		}
 		else
 		{
-			glTranslated(officer.translation[0], officer.translation[1] + 5, officer.translation[2] - 22.5);
+			glTranslated(human.translation[0], human.translation[1] + 5, human.translation[2] - 22.5);
 			glRotated(180, 0, 1, 0);
 		}
 	}
@@ -785,47 +685,6 @@ void display(void)
 	traverse(&t_node);
 
 	glPopMatrix();
-	/*
-	//set posisi dan gambar train
-	glPushMatrix();
-	glTranslated(train.translation[0], train.translation[1], train.translation[2]);
-	glRotatef(train.rotation, 0, 1, 0);
-
-	glGetFloatv(GL_MODELVIEW_MATRIX, engine_node.m);
-
-	glLoadIdentity();
-	glTranslatef(3.5, -3, 0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, cab_node.m);
-
-	glLoadIdentity();
-	glTranslatef(-5, -3, 3.5);
-	glRotatef(thetaTrain[0], 0.0, 0.0, 1.0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, lfw_node.m);
-
-	glLoadIdentity();
-	glTranslatef(0, -3, 3.5);
-	glRotatef(thetaTrain[0], 0.0, 0.0, 1.0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, lrw_node.m);
-
-	glLoadIdentity();
-	glTranslatef(-5, -3, -3.5);
-	glRotatef(thetaTrain[0], 0.0, 0.0, 1.0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, rfw_node.m);
-
-	glLoadIdentity();
-	glTranslatef(0, -3, -3.5);
-	glRotatef(thetaTrain[0], 0.0, 0.0, 1.0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, rrw_node.m);
-
-	glLoadIdentity();
-	glTranslatef(-3.5, 3 + smokeStack, 0);
-	glRotatef(thetaTrain[0], 0.0, 1.0, 0.0);
-	glGetFloatv(GL_MODELVIEW_MATRIX, ss_node.m);
-
-	glLoadIdentity();
-	traverse(&engine_node);
-	glPopMatrix();
-	*/
 
 	//set posisi dan gambar walle
 	glPushMatrix();
@@ -833,7 +692,6 @@ void display(void)
 	glRotatef(wallE.rotation, 0, 1, 0);
 
 	// Body
-	//glLoadIdentity();
 	glTranslatef(0.0, walleBodyTranslate, 0.0);
 	glRotatef(thetaWallE[4], 0.0, 1.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, b_node.m);
@@ -877,59 +735,59 @@ void display(void)
 	traverse(&b_node);
 	glPopMatrix();
 
-	//set posisi dan gambar officer
+	//set posisi dan gambar human
 	glPushMatrix();
-	glTranslated(officer.translation[0], officer.translation[1], officer.translation[2]);
-	glRotatef(officer.rotation + 90, 0, 1, 0);
+	glTranslated(human.translation[0], human.translation[1], human.translation[2]);
+	glRotatef(human.rotation + 90, 0, 1, 0);
 
-	glRotatef(thetaOfficer[0], 1.0, 0.0, 0.0);
+	glRotatef(thetahuman[0], 1.0, 0.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, torso_node.m);
 
 	glLoadIdentity();
 	glTranslatef(0, 0.5*HEAD_HEIGHT, -1);
-	glRotatef(thetaOfficer[1], 1.0, 0.0, 0.0);
-	glRotatef(thetaOfficer[2], 0.0, 1.0, 0.0);
+	glRotatef(thetahuman[1], 1.0, 0.0, 0.0);
+	glRotatef(thetahuman[2], 0.0, 1.0, 0.0);
 	glTranslatef(0.0, -0.5*HEAD_HEIGHT, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, head2_node.m);
 
 	glLoadIdentity();
 	glTranslatef(-(TORSO_RADIUS2 + UPPER_LEG_RADIUS), 0.1*UPPER_LEG_HEIGHT, TORSO_HEIGHT - 0.5);
-	glRotatef(thetaOfficer[3], 1.0, 0.0, 0.0);
+	glRotatef(thetahuman[3], 1.0, 0.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, lua2_node.m);
 
 	glLoadIdentity();
 	glTranslatef(TORSO_RADIUS2 + UPPER_LEG_RADIUS, 0.1*UPPER_LEG_HEIGHT, TORSO_HEIGHT - 0.5);
-	glRotatef(thetaOfficer[5], 1.0, 0.0, 0.0);
+	glRotatef(thetahuman[5], 1.0, 0.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, rua2_node.m);
 
 	glLoadIdentity();
 	glTranslatef(-(TORSO_RADIUS2 + UPPER_LEG_RADIUS), 0.1*UPPER_LEG_HEIGHT, 0.5);
-	glRotatef(thetaOfficer[7], 1.0, 0.0, 0.0);
+	glRotatef(thetahuman[7], 1.0, 0.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, lul2_node.m);
 
 	glLoadIdentity();
 	glTranslatef(TORSO_RADIUS2 + UPPER_LEG_RADIUS, 0.1*UPPER_LEG_HEIGHT, 0.5);
-	glRotatef(thetaOfficer[9], 1.0, 0.0, 0.0);
+	glRotatef(thetahuman[9], 1.0, 0.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, rul2_node.m);
 
 	glLoadIdentity();
 	glTranslatef(0.0, UPPER_LEG_HEIGHT, 0.0);
-	glRotatef(thetaOfficer[4], 1.0, 0.0, 0.0);
+	glRotatef(thetahuman[4], 1.0, 0.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, lla2_node.m);
 
 	glLoadIdentity();
 	glTranslatef(0.0, UPPER_LEG_HEIGHT, 0.0);
-	glRotatef(thetaOfficer[6], 1.0, 0.0, 0.0);
+	glRotatef(thetahuman[6], 1.0, 0.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, rla2_node.m);
 
 	glLoadIdentity();
 	glTranslatef(0.0, UPPER_LEG_HEIGHT, 0.0);
-	glRotatef(thetaOfficer[8], 1.0, 0.0, 0.0);
+	glRotatef(thetahuman[8], 1.0, 0.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, lll2_node.m);
 
 	glLoadIdentity();
 	glTranslatef(0.0, UPPER_LEG_HEIGHT, 0.0);
-	glRotatef(thetaOfficer[10], 1.0, 0.0, 0.0);
+	glRotatef(thetahuman[10], 1.0, 0.0, 0.0);
 	glGetFloatv(GL_MODELVIEW_MATRIX, rll2_node.m);
 
 	glLoadIdentity();
@@ -1011,23 +869,23 @@ void display(void)
     glTranslatef(-0.5,-0.5,0.0);
     glMatrixMode(GL_MODELVIEW);
 
-    //set posisi dan gambar lanta
-     glBindTexture(GL_TEXTURE_2D, texture[9]);
-     glBegin(GL_POLYGON);
+    //set posisi dan gambar lantai
+    glBindTexture(GL_TEXTURE_2D, texture[9]);
+    glBegin(GL_POLYGON);
 
-   for (int i=0; i <= 360; i++)
-   {
-      float degInRad = i*DEG2RAD;
-      float xcos = cos(degInRad);
-      float ysin = sin(degInRad);
-      float tx = xcos * 0.5 + 0.5;
-	  float ty = ysin * 0.5 + 0.5;
+	for (int i=0; i <= 360; i++)
+	{
+		float degInRad = i*DEG2RAD;
+		float xcos = cos(degInRad);
+		float ysin = sin(degInRad);
+		float tx = xcos * 0.5 + 0.5;
+		float ty = ysin * 0.5 + 0.5;
 
-      glTexCoord2f(tx, ty);
-      glVertex3f(xcos*33, -10.5, ysin*33);
-   }
+		glTexCoord2f(tx, ty);
+		glVertex3f(xcos*33, -10.5, ysin*33);
+	}
 
-   glEnd();
+	glEnd();
 	glLoadIdentity();
 	glutSwapBuffers();
 }
@@ -1076,7 +934,6 @@ void myinit()
 
 	//setting lampu 4 sebagai lampu sorot
 
-
 	glShadeModel(GL_SMOOTH);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_NORMALIZE);
@@ -1117,30 +974,6 @@ void myinit()
 	la4 = gluNewQuadric();
 	gluQuadricDrawStyle(la4, GLU_FILL);
 	gluQuadricTexture(la4, GL_TRUE);
-	/*
-	//quadric untuk kereta
-	e = gluNewQuadric();
-	gluQuadricDrawStyle(e, GLU_FILL);
-	gluQuadricTexture(e, GL_TRUE);
-	c = gluNewQuadric();
-	gluQuadricDrawStyle(c, GLU_FILL);
-	gluQuadricTexture(c, GL_TRUE);
-	lfw = gluNewQuadric();
-	gluQuadricDrawStyle(lfw, GLU_FILL);
-	gluQuadricTexture(lfw, GL_TRUE);
-	lrw = gluNewQuadric();
-	gluQuadricDrawStyle(lrw, GLU_FILL);
-	gluQuadricTexture(lrw, GL_TRUE);
-	rfw = gluNewQuadric();
-	gluQuadricDrawStyle(rfw, GLU_FILL);
-	gluQuadricTexture(rfw, GL_TRUE);
-	rrw = gluNewQuadric();
-	gluQuadricDrawStyle(rrw, GLU_FILL);
-	gluQuadricTexture(rrw, GL_TRUE);
-	ss = gluNewQuadric();
-	gluQuadricDrawStyle(ss, GLU_FILL);
-	gluQuadricTexture(ss, GL_TRUE);
-	*/
 
 	//quadric untuk walle
 	le = gluNewQuadric();
@@ -1177,7 +1010,7 @@ void myinit()
 	gluQuadricDrawStyle(lw, GLU_FILL);
 	gluQuadricTexture(rw, GL_TRUE);
 
-	//quadric untuk officer
+	//quadric untuk human
 	h2 = gluNewQuadric();
 	gluQuadricDrawStyle(h2, GLU_FILL);
 	gluQuadricTexture(h2, GL_TRUE);
@@ -1259,37 +1092,6 @@ void myinit()
 	la4_node.f = lower_arm_4;
 	la4_node.sibling = NULL;
 	la4_node.child = NULL;
-	/*
-	//set tree untuk lokomotif
-	glLoadIdentity();
-	engine_node.f = engine;
-	engine_node.sibling = NULL;
-	engine_node.child = &cab_node;
-
-	cab_node.f = cab;
-	cab_node.sibling = &lfw_node;
-	cab_node.child = NULL;
-
-	lfw_node.f = left_front_wheel;
-	lfw_node.sibling = &lrw_node;
-	lfw_node.child = NULL;
-
-	lrw_node.f = left_rear_wheel;
-	lrw_node.sibling = &rfw_node;
-	lrw_node.child = NULL;
-
-	rfw_node.f = right_front_wheel;
-	rfw_node.sibling = &rrw_node;
-	rfw_node.child = NULL;
-
-	rrw_node.f = right_rear_wheel;
-	rrw_node.sibling = &ss_node;
-	rrw_node.child = NULL;
-
-	ss_node.f = smoke_stack;
-	ss_node.sibling = NULL;
-	ss_node.child = NULL;
-	*/
 
 	//set tree untuk walle
 	glLoadIdentity();
@@ -1333,12 +1135,12 @@ void myinit()
 	lw_node.sibling = &rw_node;
 	lw_node.child = 0;
 
-	
+
 	rw_node.f = wallErightWheel;
 	rw_node.sibling = 0;
 	rw_node.child = 0;
 
-	//set tree untuk officer
+	//set tree untuk human
 	torso_node.f = torso2;
 	torso_node.sibling = NULL;
 	torso_node.child = &head2_node;
@@ -1470,32 +1272,7 @@ void specialKey(int key, int x, int y)
 			spider.rotation = 90;
 			break;
 		}
-	}/*
-	else if (control.compare("train") == 0)
-	{
-		switch (key) {
-		case GLUT_KEY_LEFT:
-			train.direction = "left";
-			train.translation[0] -= 0.25;
-			train.rotation = 0;
-			break;
-		case GLUT_KEY_RIGHT:
-			train.direction = "right";
-			train.translation[0] += 0.25;
-			train.rotation = 180;
-			break;
-		case GLUT_KEY_UP:
-			train.direction = "up";
-			train.translation[2] -= 0.25;
-			train.rotation = -90;
-			break;
-		case GLUT_KEY_DOWN:
-			train.direction = "down";
-			train.translation[2] += 0.25;
-			train.rotation = 90;
-			break;
-		}
-	}*/
+	}
 	else if (control.compare("wallE") == 0)
 	{
 		switch (key) {
@@ -1521,28 +1298,28 @@ void specialKey(int key, int x, int y)
 			break;
 		}
 	}
-	else if (control.compare("officer") == 0)
+	else if (control.compare("human") == 0)
 	{
 		switch (key) {
 		case GLUT_KEY_LEFT:
-			officer.direction = "left";
-			officer.translation[0] -= 0.25;
-			officer.rotation = 0;
+			human.direction = "left";
+			human.translation[0] -= 0.25;
+			human.rotation = 0;
 			break;
 		case GLUT_KEY_RIGHT:
-			officer.direction = "right";
-			officer.translation[0] += 0.25;
-			officer.rotation = 180;
+			human.direction = "right";
+			human.translation[0] += 0.25;
+			human.rotation = 180;
 			break;
 		case GLUT_KEY_UP:
-			officer.direction = "up";
-			officer.translation[2] -= 0.25;
-			officer.rotation = -90;
+			human.direction = "up";
+			human.translation[2] -= 0.25;
+			human.rotation = -90;
 			break;
 		case GLUT_KEY_DOWN:
-			officer.direction = "down";
-			officer.translation[2] += 0.25;
-			officer.rotation = 90;
+			human.direction = "down";
+			human.translation[2] += 0.25;
+			human.rotation = 90;
 			break;
 		}
 	}
@@ -1593,7 +1370,7 @@ void initObjectPos()
 	spider.translation[0] = -10;
 	spider.translation[1] = -10.0;
 	spider.translation[2] = 20;
-	spider.rotation = 0;
+	spider.rotation = -i_global + 90.0;
 	thetaSpider[0] = 90.0;
 	thetaSpider[1] = 0.0;
 	thetaSpider[2] = 0.0;
@@ -1605,23 +1382,12 @@ void initObjectPos()
 	thetaSpider[8] = 0.0;
 	thetaSpider[9] = -90.0;
 
-	/*
-	//posisi semula train
-	thetaTrain[0] = 0;
-	smokeStack = 0;
-	train.direction = "left";
-	train.translation[0] = 15;
-	train.translation[1] = -6.5;
-	train.translation[2] = 20;
-	train.rotation = 0;
-	*/
-
 	//posisi semula walle
 	wallE.direction = "left";
 	wallE.translation[0] = 15;
 	wallE.translation[1] = -4.7;
 	wallE.translation[2] = 20;
-	wallE.rotation = 0;
+	wallE.rotation = -(i_global - 90.0) + 90.0;
 	thetaWallE[1] = 0.0;
 	thetaWallE[2] = 140.0;
 	thetaWallE[3] = 40.0;
@@ -1632,15 +1398,14 @@ void initObjectPos()
 	thetaWallE[9] = 0.0;
 	thetaWallE[10] = 0.0;
 
-
-	//posisi semula officer
-	thetaOfficer[3] = 90.0;
-	thetaOfficer[5] = 90.0;
-	officer.direction = "left";
-	officer.translation[0] = 0;
-	officer.translation[1] = -1.0;
-	officer.translation[2] = 20;
-	officer.rotation = 0;
+	//posisi semula human
+	thetahuman[3] = 90.0;
+	thetahuman[5] = 90.0;
+	human.direction = "left";
+	human.translation[0] = 0;
+	human.translation[1] = -1.0;
+	human.translation[2] = 20;
+	human.rotation = -(i_global-45.0) + 90.0;
 
 	//posisi semula lampu
 	lamp3.translation[0] = 10;
@@ -1693,30 +1458,7 @@ void animation()
 	    spider.translation[0] = xcos*22;
 	    spider.translation[2] = ysin*22;
 	    spider.rotation = -i_global + 90.0;
-		/*
-		//animasi train
-		thetaTrain[0] += 2.5;
-		if (smokeStack >= 0) topStack = true;
-		if (smokeStack <= -1) topStack = false;
 
-		if (topStack) smokeStack -= 0.05;
-		else smokeStack += 0.05;
-
-		for (int i = 0; i < 2; i++) {
-			if (thetaOfficer[2 * i + 3] > 135) forwardOfficer[i] = false;
-			if (thetaOfficer[2 * i + 3] < 45) forwardOfficer[i] = true;
-			if (forwardOfficer[i]) thetaOfficer[2 * i + 3] += 2.5;
-			else thetaOfficer[2 * i + 3] -= 2.5;
-		}
-
-		degInRad = (i_global-90.0)*DEG2RAD;
-	    xcos = cos(degInRad);
-	    ysin = sin(degInRad);
-
-	    train.translation[0] = xcos*22;
-	    train.translation[2] = ysin*22;
-	    train.rotation = -(i_global-90.0) + 90.0;
-		*/
 		//Animasi walle
 		if (stateWallE == 0) {
 			if (thetaWallE[1] < 25.0) {
@@ -1755,21 +1497,21 @@ void animation()
 		wallE.translation[2] = ysin * 22;
 		wallE.rotation = -(i_global - 90.0) + 90.0;
 
-		//animasi officer
+		//animasi human
 		for (int i = 0; i < 2; i++) {
-			if (thetaOfficer[2 * i + 3] > 135) forwardOfficer[i] = false;
-			if (thetaOfficer[2 * i + 3] < 45) forwardOfficer[i] = true;
-			if (forwardOfficer[i]) thetaOfficer[2 * i + 3] += 2.5;
-			else thetaOfficer[2 * i + 3] -= 2.5;
+			if (thetahuman[2 * i + 3] > 135) forwardhuman[i] = false;
+			if (thetahuman[2 * i + 3] < 45) forwardhuman[i] = true;
+			if (forwardhuman[i]) thetahuman[2 * i + 3] += 2.5;
+			else thetahuman[2 * i + 3] -= 2.5;
 		}
 
 		degInRad = (i_global-45.0)*DEG2RAD;
 	    xcos = cos(degInRad);
 	    ysin = sin(degInRad);
 
-	    officer.translation[0] = xcos*22;
-	    officer.translation[2] = ysin*22;
-	    officer.rotation = -(i_global-45.0) + 90.0;
+	    human.translation[0] = xcos*22;
+	    human.translation[2] = ysin*22;
+	    human.rotation = -(i_global-45.0) + 90.0;
 
 		//update i_global
 		i_global += 0.25;
@@ -1970,11 +1712,10 @@ void viewOptions(int id)
 		view = "spider";
 		break;
 	case 2:
-		//view = "train";
 		view = "wallE";
 		break;
 	case 3:
-		view = "officer";
+		view = "human";
 		break;
 	}
 }
@@ -1990,11 +1731,10 @@ void controlOptions(int id)
 		control = "spider";
 		break;
 	case 2:
-		//control = "train";
 		control = "wallE";
 		break;
 	case 3:
-		control = "officer";
+		control = "human";
 		break;
 	case 4:
 		control = "lamp 3";
@@ -2038,34 +1778,35 @@ void objmodeOptions(int id)
 void modeOptions(int id)
 {
 	mode = id == 0 ? "animation" : "interactive";
+	thetahuman[3] = 90.0;
+	thetahuman[5] = 90.0;
+	forwardhuman[0] = true;
+	forwardhuman[1] = false;
+
+	thetaSpider[0] = 90.0;
+	thetaSpider[1] = 0.0;
+	thetaSpider[2] = 0.0;
+	thetaSpider[3] = 0.0;
+	thetaSpider[4] = 0.0;
+	thetaSpider[5] = 0.0;
+	thetaSpider[6] = 0.0;
+	thetaSpider[7] = 0.0;
+	thetaSpider[8] = 0.0;
+	thetaSpider[9] = -90.0;
+
+	thetaWallE[1] = 0.0;
+	thetaWallE[2] = 140.0;
+	thetaWallE[3] = 40.0;
+	thetaWallE[5] = 6.5;
+	thetaWallE[6] = -6.5;
+	thetaWallE[7] = 0.0;
+	thetaWallE[8] = 0.0;
+	thetaWallE[9] = 0.0;
+	thetaWallE[10] = 0.0;
+
+	i_global = 135.0;
+
 	initObjectPos();
-	if (id == 0) {
-		forwardOfficer[0] = true;
-		forwardOfficer[1] = false;
-
-		thetaSpider[0] = 90.0;
-		thetaSpider[1] = 0.0;
-		thetaSpider[2] = 0.0;
-		thetaSpider[3] = 0.0;
-		thetaSpider[4] = 0.0;
-		thetaSpider[5] = 0.0;
-		thetaSpider[6] = 0.0;
-		thetaSpider[7] = 0.0;
-		thetaSpider[8] = 0.0;
-		thetaSpider[9] = -90.0;
-
-		thetaWallE[1] = 0.0;
-		thetaWallE[2] = 140.0;
-		thetaWallE[3] = 40.0;
-		thetaWallE[5] = 6.5;
-		thetaWallE[6] = -6.5;
-		thetaWallE[7] = 0.0;
-		thetaWallE[8] = 0.0;
-		thetaWallE[9] = 0.0;
-		thetaWallE[10] = 0.0;
-
-		i_global = 135.0;
-	}
 }
 
 void main(int argc, char **argv)
@@ -2082,15 +1823,15 @@ void main(int argc, char **argv)
 
 	view_menu = glutCreateMenu(viewOptions);
 	glutAddMenuEntry("Camera", 0);
-	glutAddMenuEntry("spider", 1);
+	glutAddMenuEntry("Spider", 1);
 	glutAddMenuEntry("WallE", 2);
-	glutAddMenuEntry("Officer", 3);
+	glutAddMenuEntry("Human", 3);
 
 	control_menu = glutCreateMenu(controlOptions);
 	glutAddMenuEntry("Camera", 0);
-	glutAddMenuEntry("spider", 1);
+	glutAddMenuEntry("Spider", 1);
 	glutAddMenuEntry("WallE", 2);
-	glutAddMenuEntry("Officer", 3);
+	glutAddMenuEntry("Human", 3);
 	glutAddMenuEntry("Lamp 3", 4);
 	glutAddMenuEntry("Lamp 4", 5);
 
