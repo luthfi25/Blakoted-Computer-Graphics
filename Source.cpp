@@ -941,8 +941,15 @@ void display(void)
 	glPushMatrix();
 	glRotated(-90, 1, 0, 0);
 	glTranslated(0, 0, -10);
-	gluCylinder(lt, 10.0, 3.0, 10, 10, 10);
-	glTranslated(0, 0, 10);
+	glTranslated(0, 5, 0);
+	gluCylinder(lt, 1, 1, 10, 10, 10);
+	glTranslated(0, -10, 0);
+	gluCylinder(lt, 1, 1, 10, 10, 10);
+	glTranslated(5, 5, 0);
+	gluCylinder(lt, 1, 1, 10, 10, 10);
+	glTranslated(-10, 0, 0);
+	gluCylinder(lt, 1, 1, 10, 10, 10);
+	glTranslated(5, 0, 10);
 	gluCylinder(ut1, 10.0, 0, 0, 10, 10);
 	gluCylinder(ut2, 10.0, 10.0, 1, 10, 10);
 	glTranslated(0, 0, 1);
