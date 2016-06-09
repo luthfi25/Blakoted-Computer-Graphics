@@ -88,7 +88,7 @@ bool forwardSpider = true;
 //static GLfloat thetaTrain[2] = { 0.0, 0.0 };
 //GLfloat smokeStack = 0;
 //bool topStack = true;
-static GLfloat thetaWallE[11] = { 0.0, 0.0, 140.0, 40.0, -90.0,0.0,0.0,0.0,0.0,0.0,0.0 };
+static GLfloat thetaWallE[11] = { 0.0, 0.0, 140.0, 40.0, -90.0, 6.5, -6.5, 0.0, 0.0, 0.0, 0.0 };
 bool stateWallE = true;
 float walleBodyTranslate = 0.0;
 static GLfloat thetaOfficer[12] = { 90.0, 0.0, 0.0, 90.0, 0.0, 90.0, 0.0, 180.0, 0.0, 180.0, 0.0, 90.0 };
@@ -286,6 +286,7 @@ void smoke_stack() //membuat objek pembuangan uap dari locomotive
 
 //Method objek Wall E
 void wallErightEye() {
+	glBindTexture(GL_TEXTURE_2D, texture[3]);
 	glPushMatrix();
 	glTranslatef(-0.75*EYE_RADIUS, 0.0, 0.0);
 	glRotatef(-45.0, 0.0, 0.0, 1.0);
@@ -300,6 +301,7 @@ void wallErightEye() {
 }
 
 void wallEleftEye() {
+	glBindTexture(GL_TEXTURE_2D, texture[3]);
 	glPushMatrix();
 	glTranslatef(0.75*EYE_RADIUS, 0.0, 0.0);
 	glRotatef(-45.0, 0.0, 0.0, 1.0);
@@ -314,6 +316,7 @@ void wallEleftEye() {
 }
 
 void wallEupperNeck() {
+	glBindTexture(GL_TEXTURE_2D, texture[4]);
 	glPushMatrix();
 	glRotatef(90.0, 1.0, 0.0, 0.0);
 	glRotatef(-45.0, 0.0, 0.0, 1.0);
@@ -328,6 +331,7 @@ void wallEupperNeck() {
 }
 
 void wallElowerNeck() {
+	glBindTexture(GL_TEXTURE_2D, texture[4]);
 	glPushMatrix();
 	glTranslatef(0.0, 0.3*BODY_HEIGHT, 0.0);
 	glRotatef(90.0, 1.0, 0.0, 0.0);
@@ -343,6 +347,7 @@ void wallElowerNeck() {
 }
 
 void wallEbody() {
+	glBindTexture(GL_TEXTURE_2D, texture[5]);
 	glPushMatrix();
 	glRotatef(90.0, 1.0, 0.0, 0.0);
 	glRotatef(45.0, 0.0, 0.0, 1.0);
@@ -357,6 +362,7 @@ void wallEbody() {
 }
 
 void wallErightUpperArm() {
+	glBindTexture(GL_TEXTURE_2D, texture[4]);
 	glPushMatrix();
 	glTranslatef(-0.81*BODY_RADIUS, -0.15*BODY_HEIGHT, 0.0);
 	glRotatef(45.0, 0.0, 0.0, 1.0);
@@ -371,6 +377,7 @@ void wallErightUpperArm() {
 }
 
 void wallEleftUpperArm() {
+	glBindTexture(GL_TEXTURE_2D, texture[4]);
 	glPushMatrix();
 	glTranslatef(0.81*BODY_RADIUS, -0.15*BODY_HEIGHT, 0.0);
 	glRotatef(45.0, 0.0, 0.0, 1.0);
@@ -385,6 +392,7 @@ void wallEleftUpperArm() {
 }
 
 void wallErightLowerArm() {
+	glBindTexture(GL_TEXTURE_2D, texture[4]);
 	glPushMatrix();
 	glRotatef(45.0, 0.0, 0.0, 1.0);
 	gluCylinder(rla, LOWER_ARM_RADIUS, LOWER_ARM_RADIUS, LOWER_ARM_HEIGHT, 4, 16);
@@ -398,6 +406,7 @@ void wallErightLowerArm() {
 }
 
 void wallEleftLowerArm() {
+	glBindTexture(GL_TEXTURE_2D, texture[4]);
 	glPushMatrix();
 	glRotatef(45.0, 0.0, 0.0, 1.0);
 	gluCylinder(lla, LOWER_ARM_RADIUS, LOWER_ARM_RADIUS, LOWER_ARM_HEIGHT, 4, 16);
@@ -411,6 +420,7 @@ void wallEleftLowerArm() {
 }
 
 void wallErightWheel() {
+	glBindTexture(GL_TEXTURE_2D, texture[3]);
 	glPushMatrix();
 	glRotatef(90.0, 0.0, 1.0, 0.0);
 	gluCylinder(rw, WHEEL_RADIUS, WHEEL_RADIUS, WHEEL_HEIGHT, 10, 16);
@@ -424,6 +434,7 @@ void wallErightWheel() {
 }
 
 void wallEleftWheel() {
+	glBindTexture(GL_TEXTURE_2D, texture[3]);
 	glPushMatrix();
 	glRotatef(90.0, 0.0, 1.0, 0.0);
 	gluCylinder(rw, WHEEL_RADIUS, WHEEL_RADIUS, WHEEL_HEIGHT, 10, 16);
@@ -1127,26 +1138,37 @@ void myinit()
 	//quadric untuk walle
 	le = gluNewQuadric();
 	gluQuadricDrawStyle(le, GLU_FILL);
+	gluQuadricTexture(le, GL_TRUE);
 	re = gluNewQuadric();
 	gluQuadricDrawStyle(re, GLU_FILL);
+	gluQuadricTexture(re, GL_TRUE);
 	un = gluNewQuadric();
 	gluQuadricDrawStyle(un, GLU_FILL);
+	gluQuadricTexture(un, GL_TRUE);
 	ln = gluNewQuadric();
 	gluQuadricDrawStyle(ln, GLU_FILL);
+	gluQuadricTexture(ln, GL_TRUE);
 	b = gluNewQuadric();
 	gluQuadricDrawStyle(b, GLU_FILL);
+	gluQuadricTexture(b, GL_TRUE);
 	rua = gluNewQuadric();
 	gluQuadricDrawStyle(rua, GLU_FILL);
+	gluQuadricTexture(rua, GL_TRUE);
 	lua = gluNewQuadric();
 	gluQuadricDrawStyle(lua, GLU_FILL);
+	gluQuadricTexture(lua, GL_TRUE);
 	rla = gluNewQuadric();
 	gluQuadricDrawStyle(rla, GLU_FILL);
+	gluQuadricTexture(rla, GL_TRUE);
 	lla = gluNewQuadric();
 	gluQuadricDrawStyle(lla, GLU_FILL);
+	gluQuadricTexture(lla, GL_TRUE);
 	rw = gluNewQuadric();
 	gluQuadricDrawStyle(rw, GLU_FILL);
+	gluQuadricTexture(rw, GL_TRUE);
 	lw = gluNewQuadric();
 	gluQuadricDrawStyle(lw, GLU_FILL);
+	gluQuadricTexture(rw, GL_TRUE);
 
 	//quadric untuk officer
 	h2 = gluNewQuadric();
@@ -1596,8 +1618,8 @@ void initObjectPos()
 	thetaWallE[1] = 0.0;
 	thetaWallE[2] = 140.0;
 	thetaWallE[3] = 40.0;
-	thetaWallE[5] = 0.0;
-	thetaWallE[6] = 0.0;
+	thetaWallE[5] = 6.5;
+	thetaWallE[6] = -6.5;
 	thetaWallE[7] = 0.0;
 	thetaWallE[8] = 0.0;
 	thetaWallE[9] = 0.0;
@@ -1691,12 +1713,12 @@ void animation()
 		//Animasi walle
 		if (stateWallE == 0) {
 			if (thetaWallE[1] < 25.0) {
-				thetaWallE[1] += 0.04;
-				thetaWallE[2] -= 0.03;
-				thetaWallE[3] += 0.03;
-				thetaWallE[5] += 0.01;
-				thetaWallE[6] -= 0.01;
-				walleBodyTranslate += 0.0001;
+				thetaWallE[1] += 0.3;
+				thetaWallE[2] -= 0.2;
+				thetaWallE[3] += 0.2;
+				thetaWallE[5] -= 0.15;
+				thetaWallE[6] += 0.15;
+				walleBodyTranslate += 0.001;
 			}
 			else {
 				stateWallE = 1;
@@ -1704,19 +1726,19 @@ void animation()
 		}
 		else if (stateWallE == 1) {
 			if (thetaWallE[1] > 0.0) {
-				thetaWallE[1] -= 0.04;
-				thetaWallE[2] += 0.03;
-				thetaWallE[3] -= 0.03;
-				thetaWallE[5] -= 0.01;
-				thetaWallE[6] += 0.01;
-				walleBodyTranslate -= 0.0001;
+				thetaWallE[1] -= 0.3;
+				thetaWallE[2] += 0.2;
+				thetaWallE[3] -= 0.2;
+				thetaWallE[5] += 0.15;
+				thetaWallE[6] -= 0.15;
+				walleBodyTranslate -= 0.001;
 			}
 			else {
 				stateWallE = 0;
 			}
 		}
-		thetaWallE[9] += 0.1;
-		thetaWallE[10] += 0.1;
+		thetaWallE[9] += 0.45;
+		thetaWallE[10] += 0.45;
 
 		degInRad = (i_global - 90.0)*DEG2RAD;
 		xcos = cos(degInRad);
@@ -2028,8 +2050,8 @@ void modeOptions(int id)
 		thetaWallE[1] = 0.0;
 		thetaWallE[2] = 140.0;
 		thetaWallE[3] = 40.0;
-		thetaWallE[5] = 0.0;
-		thetaWallE[6] = 0.0;
+		thetaWallE[5] = 6.5;
+		thetaWallE[6] = -6.5;
 		thetaWallE[7] = 0.0;
 		thetaWallE[8] = 0.0;
 		thetaWallE[9] = 0.0;
